@@ -53,6 +53,7 @@ import { Store } from "../../store/store";
 import { InputValidation } from "../../formValidation/inputCase";
 import { useRouter } from "vue-router";
 import apiRequest from "../../api/apiRequest";
+// import { JSChildNode } from "../../../json/";
 
 const router = useRouter();
 const adNum = ref("");
@@ -80,65 +81,72 @@ const normalLogin = async () => {
   }
   Store().loadingSpinner = true;
   normalLoginBtnText.value = "登入中...";
-  await apiRequest
-    .post("/UserLogin", {
-      empid: adNum.value,
-      mima: mima.value,
-    })
-    .then(async (res) => {
-      // 登入成功
-      if (res.desc == "successful") {
+  setTimeout(() => {
+    Store().loadingSpinner = false;
+    normalLoginBtnText.value = "登入";
+
+    apiRequest.get("/login.json", {}).then((res) => {
+      if (adNum.value == res.empId && mima.value == res.mima) {
         Store().$reset();
-        sessionStorage.setItem("userInfo", JSON.stringify(res.resBody));
-        await apiRequest
-          .post("CheckMimaValid", {})
-          .then((res) => {
-            Store().loadingSpinner = false;
-            if (res.desc !== "successful") {
-              Store().alertShow = true;
-              Store().alertObj = {
-                msg: `${res.desc}，請更換密碼`,
-                func: (e) => {
-                  Store().changePWShow = true;
-                  router.push({
-                    name: "userInfo",
-                    query: { closeIcon: true },
-                  });
-                },
-              };
-            } else {
-              console.log("Push前");
-              router
-                .push({
-                  name: "Lobby",
-                })
-                .then(() => {
-                  console.log("132", router.currentRoute.value.name);
-                  if (router.currentRoute.value.name !== "Lobby") {
-                    console.log("go");
-                    router.go(0);
-                  }
-                });
-              console.log("Push後");
-              // router.afterEach((to, from) => {
-              //   console.log("111", to.name, from.name);
-              //   if (to.name == from.name) {
-              //     console.log("go");
-              //     router.go(0);
-              //   }
-              // });
-            }
-          })
-          .catch((e) => {});
+        sessionStorage.setItem("userInfo", JSON.stringify(res));
+        router.push({
+          name: "Lobby",
+        });
       } else {
-        Store().loadingSpinner = false;
-        normalLoginBtnText.value = "登入";
+        adNum.value = "";
+        mima.value = "";
         errorText.value = "驗證失敗";
       }
-    })
-    .catch((e) => {
-      loginButtonDisabled.value = false;
     });
+  }, 2000);
+  // await apiRequest
+  //   .post("/UserLogin", {
+  //     empid: adNum.value,
+  //     mima: mima.value,
+  //   })
+  //   .then(async (res) => {
+  //     // 登入成功
+  //     if (res.desc == "successful") {
+  //       Store().$reset();
+  //       sessionStorage.setItem("userInfo", JSON.stringify(res.resBody));
+  //       await apiRequest
+  //         .post("CheckMimaValid", {})
+  //         .then((res) => {
+  //           Store().loadingSpinner = false;
+  //           if (res.desc !== "successful") {
+  //             Store().alertShow = true;
+  //             Store().alertObj = {
+  //               msg: `${res.desc}，請更換密碼`,
+  //               func: (e) => {
+  //                 Store().changePWShow = true;
+  //                 router.push({
+  //                   name: "userInfo",
+  //                   query: { closeIcon: true },
+  //                 });
+  //               },
+  //             };
+  //           } else {
+  //             router
+  //               .push({
+  //                 name: "Lobby",
+  //               })
+  //               .then(() => {
+  //                 if (router.currentRoute.value.name !== "Lobby") {
+  //                   router.go(0);
+  //                 }
+  //               });
+  //           }
+  //         })
+  //         .catch((e) => {});
+  //     } else {
+  //       Store().loadingSpinner = false;
+  //       normalLoginBtnText.value = "登入";
+  //       errorText.value = "驗證失敗";
+  //     }
+  //   })
+  //   .catch((e) => {
+  //     loginButtonDisabled.value = false;
+  //   });
 };
 
 const getResetLogin = computed(() => {
