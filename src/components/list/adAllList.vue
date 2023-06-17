@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-wrap">
     <div
-      v-for="item in Store().pageData.pager"
+      v-for="item in Store.pageData.pager"
       class="w-full p-2 md:w-4/16"
       :key="item"
     >
@@ -34,9 +34,9 @@
                 class="w-[5px] h-[5px] m-1 rounded-full"
                 :class="item.status == 'offline' ? 'bg-gray-500' : 'bg-submit'"
               ></div>
-              {{ commonStore().getCaseStatusName(item.status)?.title }}</span
+              {{ commonStore.getCaseStatusName(item.status)?.title }}</span
             ><span class="bg-primaryDark text-white rounded font-bold p-1 mx-1">
-              {{ Store().getRelSys(item.system) }}
+              {{ Store.getRelSys(item.system) }}
             </span>
             <span
               class="bg-secondaryDark text-white rounded font-bold p-1 mx-1"
@@ -48,8 +48,8 @@
             <span class="font-bold">{{ adTitle(item.title) }} </span>
           </div>
           <span class="text-sm opacity-70">
-            {{ Store().dateReform(item.startDate) }}~{{
-              Store().dateReform(item.endDate)
+            {{ Store.dateReform(item.startDate) }}~{{
+              Store.dateReform(item.endDate)
             }}
           </span>
           <div class="flex justify-between items-center">
@@ -73,11 +73,14 @@
   </div>
 </template>
 <script setup>
-import { adStore, Store } from "../../store/store";
-import { commonStore } from "../../store/commonStore";
-import { useRouter } from "vue-router";
 import { onBeforeUnmount } from "vue";
+import { useRouter } from "vue-router";
+import { useCommonStore } from "../../store/commonStore";
+import { useAdStore, useStore } from "../../store/store";
 const router = useRouter();
+const Store = useStore();
+const adStore = useAdStore();
+const commonStore = useCommonStore();
 const adTitle = (title) => {
   if (title.length > 35) {
     return title.slice(0, 35) + "...";
@@ -95,8 +98,8 @@ const advertiseDetail = (uuid, category) => {
   });
 };
 onBeforeUnmount(() => {
-  Store().pageData.pager = adStore().List;
-  Store().pageData.pageCurrent = 1;
-  Store().pageData.pageSize = 20;
+  Store.pageData.pager = adStore.List;
+  Store.pageData.pageCurrent = 1;
+  Store.pageData.pageSize = 20;
 });
 </script>

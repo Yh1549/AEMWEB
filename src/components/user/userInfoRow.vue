@@ -15,7 +15,6 @@
   </div>
 </template>
 <script setup>
-import { inject, ref } from "vue";
-import { userStore } from "../../store/store";
+import { inject } from "vue";
 const infoObj = inject("infoObj");
 </script>

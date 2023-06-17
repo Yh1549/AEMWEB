@@ -14,7 +14,7 @@
           </span>
           <label class="inpLabel">
             <span class="grid items-center">
-              {{ Store().currentUser().name }}</span
+              {{ Store.currentUser().name }}</span
             >
           </label>
         </li>
@@ -28,7 +28,7 @@
           </span>
           <label class="inpLabel">
             <span class="grid items-center">{{
-              Store().currentUser().empid
+              Store.currentUser().empid
             }}</span>
           </label>
         </li>
@@ -42,7 +42,7 @@
           </span>
           <label class="inpLabel">
             <span class="grid items-center">{{
-              Store().currentUser().email
+              Store.currentUser().email
             }}</span>
           </label>
         </li>
@@ -56,7 +56,7 @@
           </span>
           <label class="inpLabel">
             <span class="grid items-center">
-              {{ Store().currentUser().deptname }}</span
+              {{ Store.currentUser().deptname }}</span
             >
           </label>
         </li>
@@ -70,7 +70,7 @@
           </span>
           <label class="inpLabel">
             <span class="grid items-center">
-              {{ Store().currentUser().deptmemo }}</span
+              {{ Store.currentUser().deptmemo }}</span
             >
           </label>
         </li>
@@ -84,7 +84,7 @@
           </span>
           <label class="inpLabel">
             <span class="grid items-center">
-              {{ Store().currentUser().lastmodifytime }}</span
+              {{ Store.currentUser().lastmodifytime }}</span
             >
           </label>
         </li>
@@ -98,34 +98,32 @@
           </span>
           <label class="inpLabel">
             <span class="grid items-center">
-              {{ Store().currentUser().lastmodifypsdtime }}</span
+              {{ Store.currentUser().lastmodifypsdtime }}</span
             >
           </label>
         </li>
       </ul>
+      <changePassWordVue />
     </div>
     <!-- 提醒警示 -->
     <!-- <div class="flex items-center">
       <i class="fa-solid fa-bell text-secondaryDark text-[25px]"></i>
       <div></div>
     </div> -->
-    <button class="btn my-3 h-fit" @click="Store().changePWShow = true">
+    <!-- <button class="btn my-3 h-fit" @click="Store.changePWShow = true">
       修改密碼
-    </button>
-    <changePassWordVue v-if="Store().changePWShow"></changePassWordVue>
+    </button> -->
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from "vue";
-import { Store, userStore } from "../../store/store";
-import postList from "../../components/list/postList.vue";
-import changePassWordVue from "../../components/changePassWord.vue";
 import { useRoute } from "vue-router";
-
+import changePassWordVue from "../../components/changePassWord.vue";
+import { useStore } from "../../store/store";
+const Store = useStore();
 const route = useRoute();
 if (route.query.closeIcon) {
-  Store().changePWShow = true;
+  Store.changePWShow = true;
 }
 </script>
 <style scoped>

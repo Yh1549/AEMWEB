@@ -1,16 +1,17 @@
 <template>
+  <Alert v-if="Store.alertShow" />
   <router-view></router-view>
-  <Alert v-if="Store().alertShow" />
   <div v-if="devMark == 'true'" class="watermark">
     {{ envTitle }}
   </div>
 </template>
 <script setup>
-import { Store } from "./store/store";
-import { useRouter, useRoute } from "vue-router";
+import { computed, ref, watch, watchEffect } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { apiRequest } from "./api/apiRequest";
-import { ref, computed, watchEffect, onBeforeMount, watch } from "vue";
 import Alert from "./components/Alert.vue";
+import { useStore } from "./store/store";
+const Store = useStore();
 const envTitle = import.meta.env.VITE_BASE_TITLE;
 const devMark = ref(import.meta.env.VITE_MARK);
 

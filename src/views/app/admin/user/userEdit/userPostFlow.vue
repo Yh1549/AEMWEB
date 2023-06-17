@@ -19,7 +19,7 @@
             ? 'border-primaryDark bg-secondaryLight/50'
             : 'border-primaryLight'
         "
-        v-for="flow in flowStore().caseflow"
+        v-for="flow in flowStore.caseflow"
       >
         <div class="flex">
           <span
@@ -40,7 +40,7 @@
           <span v-else class="opacity-50 font-bold self-center">未選取</span>
           <input
             hidden
-            :disabled="!Store().getSvcAuth('UpdateUser')"
+            :disabled="!Store.getSvcAuth('UpdateUser')"
             type="checkbox"
             :value="flow.flow"
             v-model="userCaseFlow"
@@ -52,10 +52,7 @@
     <loadSpinner>
       <template #title>儲存中</template>
     </loadSpinner>
-    <div
-      v-if="Store().getSvcAuth('UpdateUser')"
-      class="flex justify-center mt-8"
-    >
+    <div v-if="Store.getSvcAuth('UpdateUser')" class="flex justify-center mt-8">
       <button class="btn btnClick bg-cancel/70 mr-8" @click="resetUserCaseFlow">
         重置
       </button>
@@ -70,39 +67,47 @@
 </template>
 <script setup>
 import { onBeforeMount, ref } from "vue";
-import { flowStore, userStore, Store } from "../../../../../store/store";
-import { commonStore } from "../../../../../store/commonStore";
-import caseCard from "../../../../../components/CaseCard.vue";
-import apiRequest from "../../../../../api/apiRequest";
 import { useRoute, useRouter } from "vue-router";
+import apiRequest from "../../../../../api/apiRequest";
 import {
   FindAllCaseFlowAndDetail,
   FindEmpCaseFlowForEdit,
 } from "../../../../../api/service";
+import caseCard from "../../../../../components/CaseCard.vue";
+import { useCommonStore } from "../../../../../store/commonStore";
+import {
+  useFlowStore,
+  useStore,
+  useUserStore,
+} from "../../../../../store/store";
+const Store = useStore();
+const flowStore = useFlowStore();
+const userStore = useUserStore();
+const commonStore = useCommonStore();
 const route = useRoute();
 const router = useRouter();
 
 const userCaseFlow = ref([]);
 const updateUserCaseFlow = async () => {
-  Store().alertShow = true;
-  Store().alertObj = {
-    msg: `確定修改「${userStore().userEdit.name}」的建檔流程嗎？`,
+  Store.alertShow = true;
+  Store.alertObj = {
+    msg: `確定修改「${userStore.userEdit.name}」的建檔流程嗎？`,
     func: async (e) => {
       if (e.target.value === "confirm") {
-        Store().loadingSpinner = true;
+        Store.loadingSpinner = true;
         await apiRequest
           .post("CreateAndUpdateEmpCaseFlow", {
             empId: route.params.userId,
             choiceCaseFlowList: userCaseFlow.value,
           })
           .then((res) => {
-            Store().loadingSpinner = false;
+            Store.loadingSpinner = false;
             if (res.desc == "successful") {
               router.push({
                 name: "SvcSucess",
               });
             } else {
-              commonStore().SvcFail.msg = res.desc;
+              commonStore.SvcFail.msg = res.desc;
               router.push({
                 name: "SvcFail",
               });
@@ -114,14 +119,12 @@ const updateUserCaseFlow = async () => {
   };
 };
 const resetUserCaseFlow = async () => {
-  Store().alertShow = true;
-  Store().alertObj = {
-    msg: `確定重置「${
-      userStore().userEdit.name
-    }」的建檔流程嗎？您所做的變更不會被儲存`,
+  Store.alertShow = true;
+  Store.alertObj = {
+    msg: `確定重置「${userStore.userEdit.name}」的建檔流程嗎？您所做的變更不會被儲存`,
     func: async (e) => {
       if (e.target.value === "confirm") {
-        await FindEmpCaseFlowForEdit(userStore().userEdit.empid);
+        await FindEmpCaseFlowForEdit(userStore.userEdit.empid);
       }
     },
   };
@@ -129,6 +132,6 @@ const resetUserCaseFlow = async () => {
 onBeforeMount(async () => {
   await FindAllCaseFlowAndDetail();
   await FindEmpCaseFlowForEdit(route.params.userId);
-  userCaseFlow.value = userStore().caseFlow;
+  userCaseFlow.value = userStore.caseFlow;
 });
 </script>

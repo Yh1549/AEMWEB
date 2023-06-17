@@ -60,61 +60,62 @@
     <button class="btn btnClick" @click="handleSearch(false)">搜尋</button>
     <button class="btn btnClick" @click="cancelSearch">取消搜尋</button>
   </div>
-  <loadSpinner v-if="Store().loadingSpinner">
+  <loadSpinner v-if="Store.loadingSpinner">
     <template #title>載入中</template>
   </loadSpinner>
-  <div v-else-if="Store().pageRender.length == 0" class="w-full">
+  <div v-else-if="Store.pageRender.length == 0" class="w-full">
     <no-result></no-result>
   </div>
   <div v-else>
     <post-list></post-list>
-    <page-control :pageName="Store().pageRender"></page-control>
+    <page-control :pageName="Store.pageRender"></page-control>
   </div>
 </template>
 
 <script setup>
-import { Store, postStore } from "../../../store/store";
-import { ref, onBeforeMount } from "vue";
+import { onBeforeMount, ref } from "vue";
+import { FindPost, findSysList } from "../../../api/service";
 import noResult from "../../../components/NoResultPage.vue";
-import pageControl from "../../../components/pageControl.vue";
 import postList from "../../../components/list/postList.vue";
 import loadSpinner from "../../../components/loadSpinner.vue";
-import { FindPost, findSysList } from "../../../api/service";
-
+import pageControl from "../../../components/pageControl.vue";
+import { usePostStore, useStore } from "../../../store/store";
+const Store = useStore();
+const postStore = usePostStore();
 onBeforeMount(async () => {
-  Store().loadingSpinner = true;
+  Store.loadingSpinner = true;
   await FindPost();
   await findSysList();
-  Store().pageRender = searchBase.value = postStore().List;
+  Store.pageRender = searchBase.value = postStore.List;
   // postDetail route back to postList optimize (keep search record)
-  keyword.value = Store().searchMemo.keyword;
-  system.value = Store().searchMemo.system;
-  startTime.value = Store().searchMemo.startTime;
-  endTime.value = Store().searchMemo.endTime;
-  if (Store().searchMemo.personalPost) {
+  keyword.value = Store.searchMemo.keyword;
+  system.value = Store.searchMemo.system;
+  startTime.value = Store.searchMemo.startTime;
+  endTime.value = Store.searchMemo.endTime;
+  if (Store.searchMemo.personalPost) {
     personalPost.value = true;
-    searchBase.value = postStore().List.filter(
-      (i) => i.name == Store().currentUser().empid
+    searchBase.value = postStore.List.filter(
+      (i) => i.name == Store.currentUser().empid
     );
   }
   handleSearch(true);
-  Store().loadingSpinner = false;
+  Store.loadingSpinner = false;
 });
 
 // 個人公告切換
 const searchBase = ref();
 const personalPost = ref(false);
 const togglePersonalPost = () => {
-  Store().searchMemo.personalPost = personalPost.value = !personalPost.value;
+  Store.searchMemo.personalPost = personalPost.value = !personalPost.value;
   if (personalPost.value) {
-    searchBase.value = postStore().List.filter(
-      (i) => i.name == Store().currentUser().empid
+    searchBase.value = postStore.List.filter(
+      (i) => i.name == Store.currentUser().empid
     );
-    Store().pageRender = searchBase.value;
+    Store.pageRender = searchBase.value;
     clearAll();
   } else {
-    searchBase.value = postStore().List;
-    Store().pageRender = searchBase.value;
+    searchBase.value = postStore.List;
+    Store.pageRender = searchBase.value;
     clearAll();
   }
 };
@@ -136,17 +137,17 @@ const handleSearch = (init) => {
     !startTime.value &&
     !endTime.value
   ) {
-    Store().alertShow = true;
-    Store().alertObj = {
+    Store.alertShow = true;
+    Store.alertObj = {
       msg: "請選擇查詢條件！",
       func: (e) => {},
     };
     return;
   }
-  Store().searchMemo.keyword = keyword.value;
-  Store().searchMemo.system = system.value;
-  Store().searchMemo.startTime = startTime.value;
-  Store().searchMemo.endTime = endTime.value;
+  Store.searchMemo.keyword = keyword.value;
+  Store.searchMemo.system = system.value;
+  Store.searchMemo.startTime = startTime.value;
+  Store.searchMemo.endTime = endTime.value;
 
   let result = searchBase.value;
   if (keyword.value) {
@@ -187,17 +188,17 @@ const handleSearch = (init) => {
         Date.parse(p.postDate).valueOf() <= Date.parse(endTime.value).valueOf()
     );
   }
-  Store().pageRender = result;
+  Store.pageRender = result;
 };
 
 const clearAll = () => {
-  Store().searchMemo.keyword = keyword.value = undefined;
-  Store().searchMemo.system = system.value = undefined;
-  Store().searchMemo.startTime = startTime.value = undefined;
-  Store().searchMemo.endTime = endTime.value = undefined;
+  Store.searchMemo.keyword = keyword.value = undefined;
+  Store.searchMemo.system = system.value = undefined;
+  Store.searchMemo.startTime = startTime.value = undefined;
+  Store.searchMemo.endTime = endTime.value = undefined;
 };
 const cancelSearch = () => {
   clearAll();
-  Store().pageRender = searchBase.value;
+  Store.pageRender = searchBase.value;
 };
 </script>

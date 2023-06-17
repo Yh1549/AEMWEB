@@ -48,11 +48,7 @@
         v-model="pageData.pageSize"
         @change="showPage(1)"
       >
-        <option
-          v-for="item in Store().pageSizeOptions"
-          :value="item"
-          :key="item"
-        >
+        <option v-for="item in Store.pageSizeOptions" :value="item" :key="item">
           {{ item }}
         </option>
       </select>
@@ -62,13 +58,14 @@
 </template>
 
 <script setup>
-import { ref, watch, watchEffect, toRef } from "vue";
+import { ref, toRef, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
-import { Store } from "../store/store";
+import { useStore } from "../store/store";
+const Store = useStore();
 
 // 頁數設定
 const route = useRoute();
-const pageData = ref(Store().pageData);
+const pageData = ref(Store.pageData);
 const showPage = (pageIndex) => {
   if (pageIndex > 0) {
     pageData.value.pageCurrent = Math.min(pageIndex, pageData.value.totalPages);
@@ -87,10 +84,10 @@ const showPage = (pageIndex) => {
       newPage[newPage.length] = pageName.value[index];
     }
     let x = newPage;
-    if (Store().chosenList.lastIndexOf(x[0].caseUuid) == -1) {
-      Store().checkAll = false;
+    if (Store.chosenList.lastIndexOf(x[0].caseUuid) == -1) {
+      Store.checkAll = false;
     } else {
-      Store().checkAll = true;
+      Store.checkAll = true;
     }
   }
 };

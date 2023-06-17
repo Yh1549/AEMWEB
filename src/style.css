@@ -170,7 +170,7 @@
   }
 
   #toggleSwicthInput:checked + .toggleSwicth {
-    background: rgb(var(--color-secondaryDark));
+    background: rgb(var(--color-submit));
   }
 
   #toggleSwicthInput:checked + .toggleSwicth:after {
@@ -180,5 +180,36 @@
 
   .toggleSwicth:active:after {
     width: 32.5px;
+  }
+
+  .tiptapStyle a {
+    color: blue;
+    text-decoration: underline;
+    font-weight: bold;
+  }
+  .tiptapStyle ul {
+    @apply list-disc pl-4;
+  }
+  .tiptapStyle ol {
+    @apply list-decimal pl-4;
+  }
+  .tiptapStyle blockquote {
+    @apply pl-8;
+  }
+  .tiptapStyle h1 {
+    font-size: 2em;
+  }
+  .tiptapStyle h2 {
+    font-size: 1.5em;
+  }
+  .tiptapStyle h3 {
+    font-size: 1.17em;
+  }
+  .tiptapStyle table th,
+  .tiptapStyle table td {
+    border-width: 1px;
+    border-color: grey;
+    padding: 0.25rem;
+    margin: 0.25rem;
   }
 }

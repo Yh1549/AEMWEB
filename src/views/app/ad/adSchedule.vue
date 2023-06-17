@@ -1,15 +1,12 @@
 <template>
   <div class="md:flex w-full justify-center">
     <div class="w-full md:w-4/16 p-2">
-      <systemSelect :options="Store().postOption.System">
+      <systemSelect :options="Store.postOption.System">
         <template #title>請先選擇一個系統</template>
       </systemSelect>
     </div>
     <div class="w-full md:w-4/16 p-2">
-      <sysBlockSelec
-        :options="adStore().adBlockList"
-        :blockAdSvc="'blockSortAd'"
-      >
+      <sysBlockSelec :options="adStore.adBlockList" :blockAdSvc="'blockSortAd'">
         <template #title>再選擇一個區塊</template>
       </sysBlockSelec>
     </div>
@@ -104,8 +101,8 @@
                 </div>
                 <div class="flex justify-between items-center">
                   <span class="text-sm md:text-base opacity-70">
-                    {{ Store().dateReform(item.startDate, ".") }}~{{
-                      Store().dateReform(item.endDate)
+                    {{ Store.dateReform(item.startDate, ".") }}~{{
+                      Store.dateReform(item.endDate)
                     }}
                   </span>
                 </div>
@@ -166,8 +163,8 @@
             </div>
             <div class="flex justify-between items-center">
               <span class="text-sm md:text-base opacity-70">
-                {{ Store().dateReform(item.startDate) }}~{{
-                  Store().dateReform(item.endDate)
+                {{ Store.dateReform(item.startDate) }}~{{
+                  Store.dateReform(item.endDate)
                 }}
               </span>
             </div>
@@ -189,23 +186,21 @@
 </template>
 <script setup>
 import {
-  ref,
-  watchEffect,
   computed,
   onBeforeMount,
   onBeforeUnmount,
+  ref,
+  watchEffect,
 } from "vue";
-import { adStore, Store } from "../../../store/store";
-import apiRequest from "../../../api/apiRequest";
-// import {
-//   InputValidation,
-//   getInputValidation,
-// } from "../../../formValidation/inputCase";
 import { useRouter } from "vue-router";
+import apiRequest from "../../../api/apiRequest";
 import { findSysList } from "../../../api/service";
 import loadSpinner from "../../../components/loadSpinner.vue";
-import systemSelect from "../../../components/systemSelect.vue";
 import sysBlockSelec from "../../../components/sysBlockSelec.vue";
+import systemSelect from "../../../components/systemSelect.vue";
+import { useAdStore, useStore } from "../../../store/store";
+const Store = useStore();
+const adStore = useAdStore();
 const AdListItem = ref([]);
 const arrangeZone = ref([]);
 const fake = ref(null);
@@ -230,7 +225,7 @@ const reArrange = (array) => {
 };
 
 const getAdlist = computed(() => {
-  AdList.value = reArrange(adStore().List);
+  AdList.value = reArrange(adStore.List);
   return AdList.value;
 });
 
@@ -269,9 +264,9 @@ const downSort = (e) => {
   AdList.value = reArrange(AdList.value);
 };
 const updateSort = () => {
-  Store().loadingSpinner = true;
-  Store().alertShow = true;
-  Store().alertObj = {
+  Store.loadingSpinner = true;
+  Store.alertShow = true;
+  Store.alertObj = {
     msg: "確定要更動排序?",
     func: async (e) => {
       if (e.target.value === "confirm") {
@@ -283,7 +278,7 @@ const updateSort = () => {
           });
         }
         apiRequest.post("UpdateBlockAd", { adModelInfo }).then((res) => {
-          Store().loadingSpinner = false;
+          Store.loadingSpinner = false;
           if ((res.desc = "successful")) {
             router.push({ name: "SvcSucess" });
           } else {
@@ -394,6 +389,6 @@ onBeforeMount(async () => {
   await findSysList();
 });
 onBeforeUnmount(() => {
-  adStore().List = [];
+  adStore.List = [];
 });
 </script>

@@ -1,33 +1,20 @@
 <template>
   <div class="w-full p-2">
-    <div class="w-3/4 mx-auto p-2">
-      <span class="font-bold block">標題 :</span>
-      <label class="inpLabel w-full">
-        <input
-          type="text"
-          class="inp w-full"
-          :placeholder="Store().detailinfo.title"
-          name="title"
-          data-valid-option="notNull,charMax(64)"
-          v-model="postStore().postUpdate.title"
-          @keyup="InputValidation(postStore().postUpdateCheckList, $event)"
-        />
-      </label>
-      <span
-        class="text-cancel font-bold transition-all duration-200"
-        :class="
-          !getInputValidation(postStore().postUpdateCheckList.title).result
-            ? 'opacity-100'
-            : 'opacity-0'
-        "
-        ><i class="fa-solid fa-circle-exclamation mr-2"></i
-        >{{
-          getInputValidation(postStore().postUpdateCheckList.title).msg
-        }}</span
-      >
-    </div>
-    <div class="flex w-3/4 mx-auto">
-      <div class="w-1/3 mx-auto p-2">
+    <formRow class="w-3/4 mx-auto">
+      <formRowItem :width="'w-full'">
+        <span class="font-bold block">標題 :</span>
+        <label class="inpLabel w-full">
+          <input
+            type="text"
+            class="inp w-full"
+            :placeholder="props.data.title"
+            v-verify:[titleValidArg]="postUpdateChecking.title"
+            v-model="updatePost.title"
+          />
+        </label> </formRowItem
+    ></formRow>
+    <formRow class="w-3/4 mx-auto">
+      <formRowItem>
         <span class="font-bold block">置頂 :</span>
         <div class="mx-auto w-full flex gap-2 items-center">
           <input
@@ -39,31 +26,21 @@
           <label for="toggleSwicthInput" class="toggleSwicth"></label>
           <span class="font-bold">{{ toggleTop ? "置頂" : "不置頂" }}</span>
         </div>
-      </div>
-      <div class="w-1/3 mx-auto p-2">
-        <span class="font-bold block">日期 :</span>
-        <label class="inpLabel w-full">
-          <input
-            type="date"
-            class="inp w-full"
-            :min="Store().getToday()"
-            disabled
-            v-model="Store().detailinfo.postDate"
-          />
-        </label>
-      </div>
-      <div class="w-1/3 mx-auto p-2">
+      </formRowItem>
+      <formRowItem>
+        <p class="font-bold block">日期/時間 :</p>
+        <p class="border-2 rounded p-2 border-primaryDark">
+          {{ props.data.postDate }}
+        </p>
+      </formRowItem>
+    </formRow>
+    <formRow class="w-3/4 mx-auto">
+      <formRowItem>
         <span class="font-bold block">標籤 :</span>
         <label class="inpLabel w-full">
-          <select
-            name="tag"
-            data-valid-option=""
-            v-model="postStore().postUpdate.tag"
-            class="w-full inp"
-            @change="InputValidation(postStore().postUpdateCheckList, $event)"
-          >
+          <select name="tag" class="w-full inp" v-model="updatePost.tag">
             <option
-              v-for="item in Store().postOption.Tag"
+              v-for="item in Store.postOption.Tag"
               :key="item.name"
               :value="item.name"
             >
@@ -71,30 +48,12 @@
             </option>
           </select>
         </label>
-      </div>
-    </div>
+      </formRowItem>
+    </formRow>
+
     <div class="w-3/4 mx-auto p-2">
       <span class="font-bold block">內文 :</span>
-      <tiptap
-        data-valid-option="notNull"
-        v-model="postStore().postUpdate.content"
-        @keyup="
-          InputValidationContent(
-            postStore().postUpdate.content,
-            postStore().postUpdateCheckList,
-            'content',
-            'notNull'
-          )
-        "
-      />
-      <span
-        v-if="
-          !getInputValidation(postStore().postUpdateCheckList.content).result
-        "
-        class="text-cancel font-bold"
-        ><i class="fa-solid fa-circle-exclamation mx-2"></i
-        >{{ getInputValidation(postStore().postUpdateCheckList.content).msg }}
-      </span>
+      <tiptap class="tiptapStyle" v-model="updatePost.content" />
     </div>
   </div>
   <div class="flex justify-center items-center">
@@ -103,100 +62,74 @@
 </template>
 
 <script setup>
-import { useRoute, useRouter } from "vue-router";
-import { Store, postStore } from "../../store/store";
+import { ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import apiRequest from "../../api/apiRequest";
-import { commonStore } from "../../store/commonStore";
-import {
-  InputValidation,
-  getInputValidation,
-  InputValidationContent,
-} from "../../formValidation/inputCase";
-import { onBeforeMount, ref, watch } from "vue";
-import { findPostTag, FindOnePost } from "../../api/service";
+import { findPostTag } from "../../api/service";
 import tiptap from "../../components/Tiptap/Tiptap.vue";
-const route = useRoute();
+import { useCommonStore } from "../../store/commonStore";
+import { useStore } from "../../store/store";
+import formRow from "../formRow.vue";
+import formRowItem from "../formRowItem.vue";
+const Store = useStore();
+const commonStore = useCommonStore();
 const router = useRouter();
 const toggleTop = ref(false);
+const props = defineProps(["data"]);
+//
+const updatePost = ref({
+  uuid: props.data.uuid,
+  title: props.data.title,
+  content: props.data.content,
+  top: props.data.top,
+  tag: props.data.tag,
+});
+const postUpdateChecking = ref({
+  title: { pass: true, msg: null },
+  // content: { pass: null, msg: null },
+});
+const titleValidArg = ["notNull", "charMax(64)"];
 
-const validCheck = () => {
-  for (let item in postStore().postUpdateCheckList) {
-    if (postStore().postUpdateCheckList[item] != null) {
-      for (let i of postStore().postUpdateCheckList[item]) {
-        if (i.result == false) {
-          return false;
-        }
-      }
-    } else {
-      return true;
+//
+const sendUpdatePost = async () => {
+  let res = await apiRequest.post("UpdatePost", updatePost.value);
+  if (res.desc == "successful") {
+    Store.loadingSpinner = false;
+    Store.detailUpdateToggle = false;
+    await findPostTag(props.data.relSys);
+  } else {
+    commonStore.SvcFail.msg = res.desc;
+    router.push({ name: "SvcFail" });
+  }
+};
+//
+const sendNewPostInfo = () => {
+  for (let item in postUpdateChecking.value) {
+    if (postUpdateChecking.value[item].pass != true) {
+      Store.alertShow = true;
+      Store.alertObj = {
+        msg: "請重新檢查輸入資料",
+        func: (e) => {},
+      };
+      return;
     }
   }
-  return true;
-};
-
-let sendNewPostInfo = () => {
-  let check = validCheck();
-  if (!check) {
-    Store().alertShow = true;
-    Store().alertObj = {
-      msg: "輸入有誤，請重新檢查",
-      func: (e) => {},
-    };
-  } else {
-    Store().alertShow = true;
-    Store().alertObj = {
-      msg: "確定修改？",
-      func: (e) => {
-        if (e.target.value === "confirm") {
-          Store().loadingSpinner = true;
-          // 編輯公告
-          apiRequest
-            .post("UpdatePost", postStore().postUpdate)
-            .then(async (res) => {
-              Store().loadingSpinner = false;
-              if (res.desc == "successful") {
-                const res = await FindOnePost(route.params.uuid);
-                if (res.desc == "successful") {
-                  Store().alertShow = true;
-                  Store().alertObj = {
-                    msg: "變更成功",
-                    func: () => {},
-                  };
-                  Store().detailinfo = res.resBody;
-                  Store().detailUpdateToggle = false;
-                  await findPostTag(detailInfo.relSys);
-                } else {
-                  commonStore().SvcFail.msg = res.desc;
-                  router.push({ name: "SvcFail" });
-                }
-              } else {
-                commonStore().SvcFail.msg = res.desc;
-                router.push({ name: "SvcFail" });
-              }
-            })
-            .catch();
-        }
-      },
-    };
-  }
+  Store.alertShow = true;
+  Store.alertObj = {
+    msg: "確定修改？",
+    func: (e) => {
+      if (e.target.value === "confirm") {
+        Store.loadingSpinner = true;
+        sendUpdatePost();
+      }
+    },
+  };
 };
 watch(toggleTop, () => {
   if (toggleTop.value) {
-    postStore().postUpdate.top = "1";
+    updatePost.top = "1";
   } else {
-    postStore().postUpdate.top = "0";
-  }
-});
-onBeforeMount(() => {
-  postStore().postUpdate.uuid = Store().detailinfo.uuid;
-  postStore().postUpdate.postDate = Store().detailinfo.postDate;
-  postStore().postUpdate.title = Store().detailinfo.title;
-  postStore().postUpdate.top = Store().detailinfo.top;
-  postStore().postUpdate.content = Store().detailinfo.content;
-  postStore().postUpdate.tag = Store().detailinfo.tag;
-  if (Store().detailinfo.top == "1") {
-    toggleTop.value = true;
+    updatePost.top = "0";
   }
 });
 </script>
-<style scoped></style>

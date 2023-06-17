@@ -14,22 +14,20 @@
         class="block py-4 font-bold"
         :class="toggleUpdate ? '' : 'opacity-50'"
         >將<span class="font-bold text-primaryDark"
-          >{{ userStore().newUser.name }} </span
+          >{{ props.newUser.name }} </span
         >設定為{{ toggleUpdate ? "部門管理員" : "一般使用者" }}，目前所屬部門:{{
-          Store().getDeptName(userStore().newUser.deptcode)?.name ?? "無"
+          Store.getDeptName(props.newUser.deptcode)?.name ?? "無"
         }}
-        科別:{{
-          Store().getDeptName(userStore().newUser.deptcode)?.unit ?? "無"
-        }}</span
+        科別:{{ Store.getDeptName(props.newUser.deptcode)?.unit ?? "無" }}</span
       >
     </div>
     <div class="flex flex-wrap">
       <label
-        v-for="item of userStore().userRangeAll"
+        v-for="item of userStore.userRangeAll"
         :key="item"
         class="w-full md:w-48 p-2 m-2 border-2 rounded box-border"
         :class="[
-          userStore().newUser.range.some((el) => el === item.code)
+          props.newUser.range.some((el) => el === item.code)
             ? 'border-primaryDark bg-secondaryLight/50'
             : 'border-primary ',
           toggleUpdate ? 'hover:border-secondary cursor-pointer' : '',
@@ -37,7 +35,7 @@
       >
         <div class="flex">
           <i
-            v-if="!userStore().newUser.range.some((el) => el === item.code)"
+            v-if="!props.newUser.range.some((el) => el === item.code)"
             class="fa-regular fa-circle text-primaryLight text-[32px]"
           ></i>
           <i
@@ -48,7 +46,7 @@
             type="checkbox"
             :disabled="!toggleUpdate"
             :value="item.code"
-            v-model="userStore().newUser.range"
+            v-model="props.newUser.range"
             hidden
           />
         </div>
@@ -63,32 +61,39 @@
   <div class="flex justify-evenly">
     <button
       class="btn btnClick bg-primaryDark my-8"
-      @click="Store().currentNewStep = 'usernewAuth'"
+      @click="Store.currentNewStep = 'usernewAuth'"
     >
       上一步
     </button>
-    <button
-      class="btn btnClick bg-primaryDark my-8"
-      @click="Store().currentNewStep = 'usernewConfirm'"
-    >
+    <button class="btn btnClick bg-primaryDark my-8" @click="nextStep">
       下一步
     </button>
   </div>
 </template>
 <script setup>
 import { ref } from "vue";
-import { Store, userStore } from "../../store/store";
+import { useStore, useUserStore } from "../../store/store";
+const Store = useStore();
+const userStore = useUserStore();
+
+const props = defineProps(["newUser"]);
+const emit = defineEmits(["newUserConfirm"]);
+
 const toggleUpdate = ref(false);
 const rangeToggle = () => {
   if (toggleUpdate.value) {
-    let userDeptCode = userStore().newUser.deptcode.slice(0, 3);
-    for (let item of userStore().userRangeAll) {
+    let userDeptCode = props.newUser.deptcode.slice(0, 3);
+    for (let item of userStore.userRangeAll) {
       if (item.code.slice(0, 3) == userDeptCode) {
-        userStore().newUser.range.push(item.code);
+        props.newUser.range.push(item.code);
       }
     }
   } else {
-    userStore().newUser.range = [];
+    props.newUser.range = [];
   }
+};
+const nextStep = () => {
+  Store.currentNewStep = "usernewConfirm";
+  emit("newUserConfirm", props.newUser);
 };
 </script>

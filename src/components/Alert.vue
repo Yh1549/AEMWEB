@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed z-[10000] left-0 top-0 w-full h-full bg-black/[.40]">
+  <div class="fixed z-[1000] left-0 top-0 w-full h-full bg-black/[.40]">
     <div
       class="relative mx-auto mt-32 w-15/16 md:w-2/5 rounded -4 bg-primaryLight"
     >
@@ -9,7 +9,7 @@
         <span class="mx-2 text-cancel">
           <i class="fa-solid fa-circle-exclamation"></i>
         </span>
-        <span class="font-bold text-base">{{ Store().alertObj.msg }}</span>
+        <span class="font-bold text-base">{{ Store.alertObj.msg }}</span>
       </div>
       <button
         class="absolute text-lg top-4 right-4 hover:cursor-pointer"
@@ -38,14 +38,15 @@
   </div>
 </template>
 <script setup>
-import { onMounted, ref } from "vue";
-import { Store } from "../store/store";
+import { useStore } from "../store/store";
+const Store = useStore();
+
 const confirm = async (e) => {
-  Store().alertObj.func(e);
-  Store().alertShow = false;
+  Store.alertObj.func(e);
+  Store.alertShow = false;
 };
 const close = (e) => {
-  Store().alertObj.func(e);
-  Store().alertShow = false;
+  Store.alertObj.func(e);
+  Store.alertShow = false;
 };
 </script>

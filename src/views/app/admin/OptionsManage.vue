@@ -1,25 +1,23 @@
 <template>
-
-    <div class="w-full bg-primaryLight">
-      <button
-        v-for="tab of tabs"
-        class="w-1/2 md:w-48 py-4 border-primary text-center font-bold hover:cursor-pointer hover:bg-gray-900/5 box-border text-lg"
-        :class="{
-          'border-secondaryDark border-b-4 bg-gray-900/5 text-white':
-            tabCurrent === tab,
-          'bg-primaryLight': tabCurrent !== tab,
-        }"
-        :key="tab"
-        @click="tabChange"
-      >
-        {{ tab }}
-      </button>
-    </div>
-    <!-- 關聯系統 -->
-    <systemsManage v-if="optionsManage == 'systems'" />
-    <!-- 部門單位 -->
-    <unitsManage v-else-if="optionsManage == 'units'" />
-
+  <div class="w-full bg-primaryLight">
+    <button
+      v-for="tab of tabs"
+      class="w-1/2 md:w-48 py-4 border-primary text-center font-bold hover:cursor-pointer hover:bg-gray-900/5 box-border text-lg"
+      :class="{
+        'border-secondaryDark border-b-4 bg-gray-900/5 text-white':
+          tabCurrent === tab,
+        'bg-primaryLight': tabCurrent !== tab,
+      }"
+      :key="tab"
+      @click="tabChange"
+    >
+      {{ tab }}
+    </button>
+  </div>
+  <!-- 關聯系統 -->
+  <systemsManage v-if="optionsManage == 'systems'" />
+  <!-- 部門單位 -->
+  <unitsManage v-else-if="optionsManage == 'units'" />
 </template>
 
 <script setup>

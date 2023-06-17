@@ -1,25 +1,25 @@
-import router from './router/router';
-import { Store } from "./store/store";
-import { commonStore } from "./store/commonStore";
-import { apiRequest } from "./api/apiRequest"
+import router from "./router/router";
+import { useStore } from "./store/store";
 router.beforeEach(async (to, from, next) => {
-  if (to.meta.title != '登入') {
-    if (Store().getLoginStatus) {
+  if (to.meta.title != "登入") {
+    if (useStore().getLoginStatus) {
       if (to.meta.requiresAuth) {
-        if (Store().getPageAuth(to.name)) {
-          Store().pageRender = [];
-          Store().pageData.pager = [];
-          Store().chosenList = [];
-          Store().checkAll = false;
+        if (useStore().getPageAuth(to.name)) {
+          useStore().pageRender = [];
+          useStore().pageData.pager = [];
+          useStore().chosenList = [];
+          useStore().checkAll = false;
           next();
         } else {
-          next({ name: 'noAuth' })
+          next({ name: "noAuth" });
         }
-      } else { next() }
+      } else {
+        next();
+      }
     } else {
-      next({ name: 'Login' })
+      next({ name: "Login" });
     }
   } else {
-    next()
+    next();
   }
 });

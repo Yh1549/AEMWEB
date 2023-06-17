@@ -1,15 +1,15 @@
 import { defineStore } from "pinia";
-import { commonStore } from "./commonStore";
+import { useCommonStore } from "./commonStore";
 
 // 全域 Store
-export const Store = defineStore({
+export const useStore = defineStore({
   id: "Store",
   state: () => ({
     currentUser: () => {
-      if (sessionStorage.getItem('userInfo')) {
-        return JSON.parse(sessionStorage.getItem('userInfo'));
+      if (sessionStorage.getItem("userInfo")) {
+        return JSON.parse(sessionStorage.getItem("userInfo"));
       } else {
-        return 'error';
+        return "error";
       }
     },
     // pagecontrol
@@ -33,7 +33,7 @@ export const Store = defineStore({
     // 廣告系統版位選擇優化：查看細節後返回列表，保持上次選擇紀錄
     adBlockMemo: {
       system: null,
-      block: null
+      block: null,
     },
     // 切換分頁
     tabCurrent: "all",
@@ -44,8 +44,8 @@ export const Store = defineStore({
     //alert
     alertShow: false,
     alertObj: {
-      msg: '',
-      func: () => { },
+      msg: "",
+      func: () => {},
     },
     //通知
     noticeLight: [],
@@ -62,10 +62,12 @@ export const Store = defineStore({
     scheduleList: [],
     scheduleHistory: [],
     jobList: [],
+    //訊息維護
+    msgInfoList: [],
     // 仔入中
     loadingSpinner: false,
     validationResultObj: {},
-    currentNewStep: '',
+    currentNewStep: "",
     scheduleCheckList: {
       jobName: null,
       triggerName: null,
@@ -74,22 +76,12 @@ export const Store = defineStore({
       triggerFlag: null,
     },
     scheduleCheckTime: { tiggerTime: null },
-    caseFlowCheck: {
-      relSys: null,
-      type: null,
-      totalLevel: null,
-      memo: null,
-    },
-    errorCodeCheck: {
-      msgType: [{ result: true, msg: 'null' }],
-      code: [{ result: true, msg: 'null' }],
-      desc: [{ result: true, msg: 'null' }],
-    },
-    changePWList: {
-      oldPw: null,
-      newPw: null,
-      checkPw: null,
-    },
+    // caseFlowCheck: {
+    //   relSys: null,
+    //   type: null,
+    //   totalLevel: null,
+    //   memo: null,
+    // },
     reSendButton: false,
     firstOtpShow: false,
     resetLogin: false,
@@ -106,20 +98,24 @@ export const Store = defineStore({
   }),
   getters: {
     getLoginStatus() {
-      if (sessionStorage.getItem('token')) {
+      if (sessionStorage.getItem("token")) {
         return true;
-      } else { return false }
+      } else {
+        return false;
+      }
     },
   },
   actions: {
     // 登入者若有此service會回傳true
     getSvcAuth(SvcCheck) {
-      if (SvcCheck != 'pass') {
+      if (SvcCheck != "pass") {
         if (this.currentUser().authority) {
-          return this.currentUser().authority.some((Svc) => Svc.svcname == SvcCheck);
-        } else false
+          return this.currentUser().authority.some(
+            (Svc) => Svc.svcname == SvcCheck
+          );
+        } else false;
       } else {
-        return true
+        return true;
       }
     },
     getUserRole() {
@@ -128,32 +124,37 @@ export const Store = defineStore({
     // 取得頁面資訊(有權限過濾) function(頁面分類,頁面名) 只輸入分類會回傳一整個分類
     getPageInfo(postTag, pagename) {
       let userPage = [];
-      for (let value in commonStore().pageItem) {
+      for (let value in useCommonStore().pageItem) {
         if (value === postTag) {
-          for (let item in commonStore().pageItem[value]) {
-            if (this.getSvcAuth(commonStore().pageItem[value][item].auth)) {
-              userPage.push(commonStore().pageItem[value][item])
+          for (let item in useCommonStore().pageItem[value]) {
+            if (this.getSvcAuth(useCommonStore().pageItem[value][item].auth)) {
+              userPage.push(useCommonStore().pageItem[value][item]);
             }
             if (pagename) {
               if (item === pagename) {
-                return commonStore().pageItem[value][item];
+                return useCommonStore().pageItem[value][item];
               }
             }
           }
         }
-      } return userPage;
+      }
+      return userPage;
     },
     getPageAuth(pageName) {
-      if (pageName != 'pass') {
-        for (let item in commonStore().pageItem) {
-          for (let page in commonStore().pageItem[item]) {
-            if (commonStore().pageItem[item][page].id === pageName) {
-              return this.getSvcAuth(commonStore().pageItem[item][page].auth)
+      if (pageName != "pass") {
+        for (let item in useCommonStore().pageItem) {
+          for (let page in useCommonStore().pageItem[item]) {
+            if (useCommonStore().pageItem[item][page].id === pageName) {
+              return this.getSvcAuth(
+                useCommonStore().pageItem[item][page].auth
+              );
             }
           }
-        } return true
-      } else { return true }
-
+        }
+        return true;
+      } else {
+        return true;
+      }
     },
     getDeptTabPage(e) {
       this.tabCurrent = "all";
@@ -162,70 +163,57 @@ export const Store = defineStore({
         if (e.target.value && e.target.value !== "all") {
           this.tabCurrent = e.target.value;
           this.pageData.pageCurrent = 1;
-          for (let item of Store().postOption.Unit) {
+          for (let item of useStore().postOption.Unit) {
             if (this.tabCurrent === item.name) {
-              for (let user of userStore().List) {
+              for (let user of useUserStore().List) {
                 if (user.deptcode == item.code) {
-                  this.tabList.push(user)
+                  this.tabList.push(user);
                 }
-              };
+              }
             }
           }
           this.pageRender = this.tabList;
         } else {
           this.tabCurrent = "all";
-          this.pageRender = userStore().List;
+          this.pageRender = useUserStore().List;
         }
       } else {
-        this.pageRender = userStore().List;
+        this.pageRender = useUserStore().List;
       }
     },
     getDeptTabList() {
       let tabSet = new Set();
       for (let item of this.postOption.Unit) {
-        tabSet.add(item.name)
+        tabSet.add(item.name);
       }
       return tabSet;
     },
     getDeptName(deptcode) {
       for (let item of this.postOption.Unit) {
         if (deptcode === item.code) {
-          return item
+          return item;
         }
       }
     },
     getSvc(svcName) {
-      for (let item of userStore().svcListAll) {
+      for (let item of useUserStore().svcListAll) {
         if (svcName === item.svcName) {
-          return item
+          return item;
         }
       }
     },
     getRelSys(str) {
-      for (let i = 0; i < Store().postOption.System.length; i++) {
-        if (str === Store().postOption.System[i].name) {
-          return Store().postOption.System[i].memo
+      for (let i = 0; i < useStore().postOption.System.length; i++) {
+        if (str === useStore().postOption.System[i].name) {
+          return useStore().postOption.System[i].memo;
         }
       }
     },
     getTag(str) {
-      for (let i = 0; i < Store().postOption.Tag.length; i++) {
-        if (str == Store().postOption.Tag[i].name) {
-          return Store().postOption.Tag[i].memo
+      for (let i = 0; i < useStore().postOption.Tag.length; i++) {
+        if (str == useStore().postOption.Tag[i].name) {
+          return useStore().postOption.Tag[i].memo;
         }
-      }
-    },
-    getRoleName(rolecode) {
-      let obj;
-      for (let item of flowStore().caseflow) {
-        for (let value of item.detailList)
-          if (rolecode == value.role) {
-            obj = {
-              total: item,
-              detail: value
-            }
-            return obj;
-          }
       }
     },
     getToday() {
@@ -257,19 +245,19 @@ export const Store = defineStore({
       return value;
     },
     dateReform(date, seprate, origin) {
-      let array
+      let array;
       if (date) {
         if (origin) {
           array = date.split(`${origin}`);
         } else {
           array = date.split(`-`);
-        };
+        }
         if (seprate) {
           return array.join(`${seprate}`);
         }
         return array.join(".");
       } else {
-        return null
+        return null;
       }
     },
     timeReform(time) {
@@ -277,106 +265,63 @@ export const Store = defineStore({
         let array = time.split(" ");
         return array;
       } else {
-        return [null]
+        return [null];
       }
     },
   },
-
 });
 // 公告
-export const postStore = defineStore({
+export const usePostStore = defineStore({
   id: "postStore",
   state: () => ({
     List: [],
     postDetail: [],
-    refId: '',
+    refId: "",
     postOptionControl: {
       postUnit: [],
       postSystem: [],
     },
     postLog: [],
-    totalLevel: '',
+    totalLevel: "",
     // 審核公告分頁頁籤
-    postApproveTabs: [{
-      status: 'checking',
-      memo: '審核中'
-    }, {
-      status: 'deleted',
-      memo: '已刪除',
-    }, { status: 'end', memo: '已結案' }],
-    // 新增公告
-    newPost: {
-      title: null,
-      content: null,
-      top: '1',
-      postDate: null,
-      relSys: null,
-      tag: null,
-      // Unit: null,
-      flow: null,
-    },
-    newPostCheckList: {
-      flow: null,
-      // top: true,
-      // Unit: true,
-      postDate: null,
-      title: null,
-      content: null,
-      relSys: null,
-    },
-    postUpdate: {
-      uuid: null,
-      title: null,
-      content: null,
-      top: null,
-      tag: null,
-    },
-    postUpdateCheckList: {
-      title: [{
-        result: true,
-        msg: ''
-      }],
-      content: [{
-        result: true,
-        msg: ''
-      }],
-      top: [{
-        result: true,
-        msg: ''
-      }],
-      tag: [{
-        result: true,
-        msg: ''
-      }],
-    },
+    postApproveTabs: [
+      {
+        status: "checking",
+        memo: "審核中",
+      },
+      {
+        status: "deleted",
+        memo: "已刪除",
+      },
+      { status: "end", memo: "已結案" },
+    ],
+    newPostStep: true,
     historyCase: false,
   }),
   actions: {
-    getCaseflow(str) {
-      if (this.newPost.flow != null) {
-        for (let i = 0; i < flowStore().caseDetail.length; i++) {
-          if (this.newPost.flow === flowStore().caseDetail[i].flow) {
-            return flowStore().Detail[i][str];
-          }
+    // getCaseflow(Post, list) {
+    //   if (Post != null) {
+    //     for (let i = 0; i < list.length; i++) {
+    //       if (Post === list[i].flow) {
+    //         return list[i];
+    //       }
+    //     }
+    //   } else {
+    //     return false
+    //   }
+    // },
+    getRelSys(Post, str) {
+      for (let i = 0; i < useStore().postOption.System.length; i++) {
+        if (Post.relSys === useStore().postOption.System[i].name) {
+          return useStore().postOption.System[i][str];
         }
-      } else {
-        return false
       }
     },
-    getRelSys(str) {
-      if (this.newPost.relSys != null) {
-        for (let i = 0; i < Store().postOption.System.length; i++) {
-          if (this.newPost.relSys === Store().postOption.System[i].name) {
-            return Store().postOption.System[i][str]
-          }
-        }
-      } else return false
-    },
-    getTag(str) {
-      if (this.newPost.tag != null) {
-        for (let i = 0; i < Store().postOption.Tag.length; i++) {
-          if (this.newPost.tag === Store().postOption.Tag[i].name) {
-            return Store().postOption.Tag[i][str]
+    getTag(Post, str) {
+      if (Post.tag != null) {
+        for (let i = 0; i < useStore().postOption.Tag.length; i++) {
+          if (Post.tag === useStore().postOption.Tag[i].name) {
+            return useStore().postOption.Tag[i][str];
           }
         }
       }
@@ -384,165 +329,84 @@ export const postStore = defineStore({
   },
 });
 // 廣告
-export const adStore = defineStore({
-  id: 'adStore',
+export const useAdStore = defineStore({
+  id: "adStore",
   state: () => ({
     List: [],
     selected: null,
     adBlockList: [],
-    newAd: {
-      title: null,
-      content: null,
-      startDate: null,
-      endDate: "2099-01-01",
-      system: null,
-      photo: null,
-      link: null,
-      block: null,
-      flow: null,
-    },
-    newAdCheckList: {
-      flow: null,
-      title: null,
-      content: null,
-      startDate: null,
-      // endDate: null,
-      system: null,
-      // link: null,
-      block: null,
-    },
+    newAdStep: true,
     updateAdShow: false,
-    updateModify: {
-      uuid: "",
-      title: "",
-      content: "",
-      startDate: "",
-      endDate: "",
-      photo: "",
-      link: "",
-      block: "",
-    },
-    updateModifyValid: {
-      title: null,
-      content: null,
-      startDate: null,
-      endDate: null,
-      photo: null,
-      link: null,
-    },
   }),
   actions: {
     getBlockMemo(str) {
       for (let i = 0; i < this.adBlockList.length; i++) {
         if (str === this.adBlockList[i].block) {
-          return this.adBlockList[i].memo
+          return this.adBlockList[i].memo;
         }
       }
     },
     getCaseflow(str) {
       if (this.newAd.flow != null) {
-        for (let i = 0; i < flowStore().caseDetail.length; i++) {
-          if (this.newAd.flow === flowStore().caseDetail[i].flow) {
-            return flowStore().Detail[i][str];
+        for (let i = 0; i < useFlowStore().caseDetail.length; i++) {
+          if (this.newAd.flow === useFlowStore().caseDetail[i].flow) {
+            return useFlowStore().Detail[i][str];
           }
         }
       } else {
-        return false
+        return false;
       }
     },
     getRelSys(str) {
       if (this.newAd.relSys != null) {
-        for (let i = 0; i < Store().postOption.System.length; i++) {
-          if (this.newAd.relSys === Store().postOption.System[i].name) {
-            return Store().postOption.System[i][str]
+        for (let i = 0; i < useStore().postOption.System.length; i++) {
+          if (this.newAd.relSys === useStore().postOption.System[i].name) {
+            return useStore().postOption.System[i][str];
           }
         }
-      } else return false
+      } else return false;
     },
     getTag(str) {
       if (this.newAd.tag != null) {
-        for (let i = 0; i < Store().postOption.Tag.length; i++) {
-          if (this.newAd.tag === Store().postOption.Tag[i].name) {
-            return Store().postOption.Tag[i][str]
+        for (let i = 0; i < useStore().postOption.Tag.length; i++) {
+          if (this.newAd.tag === useStore().postOption.Tag[i].name) {
+            return useStore().postOption.Tag[i][str];
           }
         }
       }
     },
   },
-})
+});
 // 使用者
-export const userStore = defineStore({
+export const useUserStore = defineStore({
   id: "userStore",
   state: () => ({
     List: [],
-    UserSvcListTabs: [{
-      name: "全部",
-      tag: 'all'
-    }, {
-      name: "公告",
-      tag: 'post'
-    }, {
-      name: "審核",
-      tag: 'Case'
-    }, {
-      name: "使用者", tag: 'User'
-    }, {
-      name: "部門", tag: 'Dept'
-    }, {
-      name: '廣告', tag: 'advertise'
-    }, {
-      name: '排程', tag: 'schedule'
-    }, {
-      name: '錯誤代碼', tag: 'SysMsg'
-    }, {
-      name: '其他', tag: null
-    }],
     userEdit: {},
     userCurrentUpdate: null,
     userUpdateToggle: false,
     userModify: {
-      empid: '',
+      empid: "",
     },
     svcListAll: [],
     svcRoleSet: [],
     setUpdate: {
       authroity: [],
-      name: '',
-      userset: ''
+      name: "",
+      userset: "",
     },
     caseFlow: null,
     userRoleList: [],
     userRangeAll: [],
     userRangeValid: false,
-    newUser: {
-      name: null,
-      empid: null,
-      mima: null,
-      memo: null,
-      deptcode: null,
-      // email: null,
-      title: null,
-      authority: [],
-      range: [],
-    },
-    // 驗證list
-    newUserCheckList: {
-      name: null,
-      empid: null,
-      mima: null,
-      mimaDouble: null,
-      deptcode: null,
-      // email: null,
-      // memo: null
-    },
     userEditCheck: {
-      check: null
+      check: null,
     },
     mimaDoubleCheck: null,
   }),
 });
 // 流程
-export const flowStore = defineStore({
+export const useFlowStore = defineStore({
   id: "flowStore",
   state: () => ({
     caseflow: [],

@@ -7,10 +7,10 @@
         </span>
         <div>
           <p class="text-2xl font-bold text-cancel">
-            {{ commonStore().SvcFail.title }}
+            {{ commonStore.SvcFail.title }}
           </p>
           <p class="rounded p-2">
-            {{ commonStore().SvcFail.msg }}
+            {{ commonStore.SvcFail.msg }}
           </p>
         </div>
       </div>
@@ -21,19 +21,22 @@
   </div>
 </template>
 <script setup>
-import { onMounted, onBeforeUnmount } from "vue";
-import { commonStore } from "../../store/commonStore";
+import { onBeforeUnmount, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useCommonStore } from "../../store/commonStore";
+import { useStore } from "../../store/store";
+const commonStore = useCommonStore();
+const Store = useStore();
 const router = useRouter();
 let time;
 let autoReturn = () => {
   time = setTimeout(() => {
-    if (Store().routerPush) {
-      router.push(Store().routerPush);
+    if (Store.routerPush) {
+      router.push(Store.routerPush);
     } else {
       router.go(-1);
     }
-    delete Store().routerPush;
+    delete Store.routerPush;
   }, 3000);
 };
 onMounted(() => {

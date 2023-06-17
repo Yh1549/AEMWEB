@@ -1,85 +1,83 @@
 <template>
-
-    <div>
-      <h2 class="border-b-2 border-primary text-2xl pb-1">審核流程</h2>
-      <div class="w-15/16 mx-auto pl-10">
-        <label for="flowCode" class="inpLabel"
-          ><span class="w-2/16 inpSpan">審核流程代號</span>
-          <input
-            type="text"
-            id="flowCode"
-            name="flowCode"
-            v-model="flow.flowCode"
-            class="w-6/16 inp"
-          />
-        </label>
-        <label for="flowName" class="inpLabel"
-          ><span class="w-2/16 inpSpan">審核流程名稱</span>
-          <input
-            type="text"
-            id="flowName"
-            name="flowName"
-            v-model="flow.flowName"
-            class="w-6/16 inp"
-          />
-        </label>
-        <label for="totalLevels" class="inpLabel"
-          ><span class="w-2/16 inpSpan">流程層級總數</span>
-          <select
-            name="totalLevels"
-            v-model="flow.totalLevels"
-            class="w-6/16 inp"
-          >
-            <option disabled selected>請選擇流程層級總數</option>
-            <option v-for="item in 10" :key="item" :value="item">
-              {{ item }}
-            </option>
-          </select>
-        </label>
-      </div>
-      <h2 class="border-b-2 border-primary text-2xl pb-1">層級細節</h2>
-      <div class="w-15/16 mx-auto pl-10 py-4 flex flex-wrap gap-3">
-        <div
-          v-for="level in Number(flow.totalLevels)"
-          :key="level"
-          class="w-5/16 p-2 bg-primaryLight rounded"
+  <div>
+    <h2 class="border-b-2 border-primary text-2xl pb-1">審核流程</h2>
+    <div class="w-15/16 mx-auto pl-10">
+      <label for="flowCode" class="inpLabel"
+        ><span class="w-2/16 inpSpan">審核流程代號</span>
+        <input
+          type="text"
+          id="flowCode"
+          name="flowCode"
+          v-model="flow.flowCode"
+          class="w-6/16 inp"
+        />
+      </label>
+      <label for="flowName" class="inpLabel"
+        ><span class="w-2/16 inpSpan">審核流程名稱</span>
+        <input
+          type="text"
+          id="flowName"
+          name="flowName"
+          v-model="flow.flowName"
+          class="w-6/16 inp"
+        />
+      </label>
+      <label for="totalLevels" class="inpLabel"
+        ><span class="w-2/16 inpSpan">流程層級總數</span>
+        <select
+          name="totalLevels"
+          v-model="flow.totalLevels"
+          class="w-6/16 inp"
         >
-          <div>
-            <p class="mb-2 font-bold">層級 {{ level }}</p>
-            <p class="flex">
-              <label for="role" class="w-4/12 font-bold">審核角色：</label>
-              <select
-                name="role"
-                id="role"
-                v-model="flow.levelRoles[level - 1].role"
-                class="w-8/12 inp"
+          <option disabled selected>請選擇流程層級總數</option>
+          <option v-for="item in 10" :key="item" :value="item">
+            {{ item }}
+          </option>
+        </select>
+      </label>
+    </div>
+    <h2 class="border-b-2 border-primary text-2xl pb-1">層級細節</h2>
+    <div class="w-15/16 mx-auto pl-10 py-4 flex flex-wrap gap-3">
+      <div
+        v-for="level in Number(flow.totalLevels)"
+        :key="level"
+        class="w-5/16 p-2 bg-primaryLight rounded"
+      >
+        <div>
+          <p class="mb-2 font-bold">層級 {{ level }}</p>
+          <p class="flex">
+            <label for="role" class="w-4/12 font-bold">審核角色：</label>
+            <select
+              name="role"
+              id="role"
+              v-model="flow.levelRoles[level - 1].role"
+              class="w-8/12 inp"
+            >
+              <option disabled selected>請選擇審核角色</option>
+              <option
+                v-for="role in roleData"
+                :key="role.roleId"
+                :value="role.roleName"
               >
-                <option disabled selected>請選擇審核角色</option>
-                <option
-                  v-for="role in roleData"
-                  :key="role.roleId"
-                  :value="role.roleName"
-                >
-                  {{ role.roleName }}
-                </option>
-              </select>
-            </p>
-          </div>
+                {{ role.roleName }}
+              </option>
+            </select>
+          </p>
         </div>
       </div>
-      <div class="absolute bottom-4 w-15/16 flex justify-center">
-        <button class="btn btnClick w-2/12" @click="submit">確認送出</button>
-      </div>
     </div>
-    <Alert v-if="alertObj.open" :alertProp="alertObj.prop" />
-
+    <div class="absolute bottom-4 w-15/16 flex justify-center">
+      <button class="btn btnClick w-2/12" @click="submit">確認送出</button>
+    </div>
+  </div>
+  <Alert v-if="alertObj.open" :alertProp="alertObj.prop" />
 </template>
 <script setup>
-import { ref, reactive, computed } from "vue";
+import { computed, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { flowStore } from "../../../store/store";
 import apiRequest from "../../../api/apiRequest";
-
+import { useFlowStore } from "../../../store/store";
+const flowStore = useFlowStore();
 const flow = ref({
   flowCode: "",
   flowName: "",
@@ -88,7 +86,7 @@ const flow = ref({
 });
 
 const route = useRoute();
-const flows = flowStore().caseflow;
+const flows = flowStore.caseflow;
 const targetFlow = flows.filter((flow) => flow.flowCode === route.params.id);
 flow.value = targetFlow.shift();
 

@@ -2,20 +2,20 @@
   <button
     class="btn btnClick bg-submit m-2 text-base"
     @click="addSchedule()"
-    v-if="Store().getSvcAuth('CreateSchedule')"
+    v-if="Store.getSvcAuth('CreateSchedule')"
   >
     新增排程
     <i class="fa-solid fa-plus"></i>
   </button>
   <hr class="my-2" />
-  <div v-for="schedule of Store().scheduleList" :key="schedule" class="my-7">
+  <div v-for="schedule of Store.scheduleList" :key="schedule" class="my-7">
     <div class="flex gap-x-4 items-center w-full flex-wrap">
       <div class="flex gap-x-4 items-center">
         <span class="text-lg font-bold">{{ schedule.job }}</span>
         <span>{{ schedule.description }}</span>
       </div>
       <div class="flex flex-1 justify-end gap-x-2 pr-4">
-        <div class="menu" v-if="Store().getSvcAuth('FindHistoryFireJob')">
+        <div class="menu" v-if="Store.getSvcAuth('FindHistoryFireJob')">
           <button class="text-gray-400" @click="findHistory(schedule.job)">
             <i class="fa-solid fa-clock-rotate-left"></i>
           </button>
@@ -23,9 +23,7 @@
         </div>
         <div
           class="menu"
-          v-if="
-            schedule.triggerInfoList != '' && Store().getSvcAuth('DeleteJob')
-          "
+          v-if="schedule.triggerInfoList != '' && Store.getSvcAuth('DeleteJob')"
         >
           <span>刪除JOB</span>
           <button class="bg-cancel text-white" @click="delJob(schedule.job)">
@@ -34,9 +32,7 @@
         </div>
         <div
           class="menu"
-          v-if="
-            schedule.triggerInfoList != '' && Store().getSvcAuth('ReFireJob')
-          "
+          v-if="schedule.triggerInfoList != '' && Store.getSvcAuth('ReFireJob')"
         >
           <button class="bg-secondaryDark flex" @click="reJob(schedule.job)">
             <span class="hidden md:flex">立即執行</span>
@@ -93,7 +89,7 @@
                 <button
                   class=""
                   @click="starEdit(i)"
-                  v-if="Store().getSvcAuth('UpdateMemo')"
+                  v-if="Store.getSvcAuth('UpdateMemo')"
                 >
                   <div><i class="flex fa-solid fa-pen m-0.5"></i></div>
                 </button>
@@ -116,7 +112,7 @@
               </div>
             </td>
             <td class="flex gap-x-2">
-              <div class="menu" v-if="Store().getSvcAuth('UpdateStatus')">
+              <div class="menu" v-if="Store.getSvcAuth('UpdateStatus')">
                 <span v-if="i.triggerState == 'NORMAL'">停用JOB</span>
                 <span v-else>啟用JOB</span>
                 <button @click="updateStatus(i.triggerName, i.triggerState)">
@@ -126,7 +122,7 @@
                   <i class="fa-solid fa-play" v-else></i>
                 </button>
               </div>
-              <div class="menu" v-if="Store().getSvcAuth('UpdateCronTime')">
+              <div class="menu" v-if="Store.getSvcAuth('UpdateCronTime')">
                 <span>設定TiggerTime</span>
                 <button
                   class="text-primaryDark"
@@ -139,7 +135,7 @@
                   <div class="px-0.5"><i class="fa-solid fa-gear"></i></div>
                 </button>
               </div>
-              <div class="menu" v-if="Store().getSvcAuth('DeleteTrigger')">
+              <div class="menu" v-if="Store.getSvcAuth('DeleteTrigger')">
                 <span>刪除Trigger</span>
                 <button class="text-cancel" @click="delTrigger(i.triggerName)">
                   <div class="px-[3px]">
@@ -155,10 +151,10 @@
   </div>
   <div
     v-if="inputWin"
-    class="fixed z-[10000] left-0 top-0 w-full h-full bg-black/[.40] grid place-items-center"
+    class="fixed z-50 left-0 top-0 w-full h-full bg-black/[.40] grid place-items-center"
   >
     <div
-      class="absolute rounded-md border bg-background shadow-lg w-[90%] md:w-[50%] lg:w-[35%] rounded z-[10000] overflow-y-auto scrollbar"
+      class="absolute rounded-md border bg-background shadow-lg w-[90%] md:w-[50%] lg:w-[35%] rounded z-50 overflow-y-auto scrollbar"
       :class="{
         'inset-y-5 lg:inset-y-8': newSchedule,
         'top-36 md:inset-y-auto': setTime,
@@ -177,22 +173,24 @@
   </div>
 </template>
 <script setup>
-import { Store } from "../../../store/store";
-import { ref, reactive } from "vue";
-import createSchedule from "../../../components/schedule/createSchedule.vue";
-import updataTime from "../../../components/schedule/UpdateTime.vue";
-import historyJob from "../../../components/schedule/historyJob.vue";
+import { reactive, ref } from "vue";
 import {
-  UpdateStatus,
-  ReFireJob,
-  FindJob,
-  DeleteTrigger,
   DeleteJob,
-  UpdateMemo,
+  DeleteTrigger,
   FindHistoryFireJob,
+  FindJob,
+  ReFireJob,
+  UpdateMemo,
+  UpdateStatus,
 } from "../../../api/service";
-import { commonStore } from "../../../store/commonStore";
+import updataTime from "../../../components/schedule/UpdateTime.vue";
+import createSchedule from "../../../components/schedule/createSchedule.vue";
+import historyJob from "../../../components/schedule/historyJob.vue";
 import router from "../../../router/router";
+import { useCommonStore } from "../../../store/commonStore";
+import { useStore } from "../../../store/store";
+const commonStore = useCommonStore();
+const Store = useStore();
 const inputWin = ref(false),
   newSchedule = ref(false),
   setTime = ref(false),
@@ -203,8 +201,8 @@ const data = reactive({
   memo: "",
 });
 let mes = "";
-for (let value in Store().scheduleCheckList) {
-  Store().scheduleCheckList[value] = null;
+for (let value in Store.scheduleCheckList) {
+  Store.scheduleCheckList[value] = null;
 }
 const addSchedule = () => {
   FindJob();
@@ -219,8 +217,8 @@ const updateStatus = (triggerName, status) => {
     mes = "您確定要啟用JOB?";
     status = 1;
   }
-  Store().alertShow = true;
-  Store().alertObj = {
+  Store.alertShow = true;
+  Store.alertObj = {
     msg: mes,
     func: async (e) => {
       if (e.target.value === "confirm") {
@@ -230,7 +228,7 @@ const updateStatus = (triggerName, status) => {
             name: "SvcSucess",
           });
         } else {
-          commonStore().SvcFail.msg = res.desc;
+          commonStore.SvcFail.msg = res.desc;
           router.push({
             name: "SvcFail",
           });
@@ -240,8 +238,8 @@ const updateStatus = (triggerName, status) => {
   };
 };
 const delJob = (jobName) => {
-  Store().alertShow = true;
-  Store().alertObj = {
+  Store.alertShow = true;
+  Store.alertObj = {
     msg: `您確定要刪除「${jobName}」嗎?`,
     func: async (e) => {
       if (e.target.value === "confirm") {
@@ -251,7 +249,7 @@ const delJob = (jobName) => {
             name: "SvcSucess",
           });
         } else {
-          commonStore().SvcFail.msg = res.desc;
+          commonStore.SvcFail.msg = res.desc;
           router.push({
             name: "SvcFail",
           });
@@ -261,8 +259,8 @@ const delJob = (jobName) => {
   };
 };
 const reJob = (job) => {
-  Store().alertShow = true;
-  Store().alertObj = {
+  Store.alertShow = true;
+  Store.alertObj = {
     msg: `您確定要重啟「${job}」嗎？`,
     func: async (e) => {
       if (e.target.value === "confirm") {
@@ -272,7 +270,7 @@ const reJob = (job) => {
             name: "SvcSucess",
           });
         } else {
-          commonStore().SvcFail.msg = res.desc;
+          commonStore.SvcFail.msg = res.desc;
           router.push({
             name: "SvcFail",
           });
@@ -282,8 +280,8 @@ const reJob = (job) => {
   };
 };
 const delTrigger = (triggerName) => {
-  Store().alertShow = true;
-  Store().alertObj = {
+  Store.alertShow = true;
+  Store.alertObj = {
     msg: `您確定要刪除「${triggerName}」嗎?`,
     func: async (e) => {
       if (e.target.value === "confirm") {
@@ -293,7 +291,7 @@ const delTrigger = (triggerName) => {
             name: "SvcSucess",
           });
         } else {
-          commonStore().SvcFail.msg = res.desc;
+          commonStore.SvcFail.msg = res.desc;
           router.push({
             name: "SvcFail",
           });
@@ -304,7 +302,7 @@ const delTrigger = (triggerName) => {
 };
 const starEdit = (trigger) => {
   data.memo = trigger.description;
-  Store().scheduleList.map((x) =>
+  Store.scheduleList.map((x) =>
     x.triggerInfoList.forEach((e) => {
       e.isEditing = false;
     })
@@ -312,8 +310,8 @@ const starEdit = (trigger) => {
   trigger.isEditing = true;
 };
 const saveEdit = (triggerName) => {
-  Store().alertShow = true;
-  Store().alertObj = {
+  Store.alertShow = true;
+  Store.alertObj = {
     msg: `您確定您確定要變更Trigger備註嗎？`,
     func: async (e) => {
       if (e.target.value === "confirm") {
@@ -323,7 +321,7 @@ const saveEdit = (triggerName) => {
             name: "SvcSucess",
           });
         } else {
-          commonStore().SvcFail.msg = res.desc;
+          commonStore.SvcFail.msg = res.desc;
           router.push({
             name: "SvcFail",
           });

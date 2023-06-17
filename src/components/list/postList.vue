@@ -8,29 +8,26 @@
       <th>細節</th>
     </template>
     <template #td
-      ><tr v-for="post in Store().pageData.pager" :key="post.uuid">
+      ><tr v-for="post in Store.pageData.pager" :key="post.uuid">
         <td class="text-sm">
           {{
-            Store().dateReform(
-              Store().timeReform(post.postDate)[0],
-              ".",
-              "/"
-            ) ?? "未發布"
+            Store.dateReform(Store.timeReform(post.postDate)[0], ".", "/") ??
+            "未發布"
           }}
         </td>
         <td>
           <span
             class="rounded p-2 text-white font-bold"
-            :class="commonStore().getCaseStatusName(post.status)?.color"
+            :class="commonStore.getCaseStatusName(post.status)?.color"
           >
-            {{ commonStore().getCaseStatusName(post.status)?.title }}
+            {{ commonStore.getCaseStatusName(post.status)?.title }}
           </span>
         </td>
         <td class="font-bold w-11/16">
           {{ postTitle(post.title, 50) }}
         </td>
         <td>
-          {{ Store().getRelSys(post.relSys) }}
+          {{ Store.getRelSys(post.relSys) }}
         </td>
         <td>
           <button
@@ -44,11 +41,13 @@
   </listTable>
 </template>
 <script setup>
-import { commonStore } from "../../store/commonStore";
-import { Store } from "../../store/store";
-import { useRouter } from "vue-router";
 import { onBeforeUnmount } from "vue";
+import { useRouter } from "vue-router";
+import { useCommonStore } from "../../store/commonStore";
+import { useStore } from "../../store/store";
 import listTable from "../listTable.vue";
+const Store = useStore();
+const commonStore = useCommonStore();
 const router = useRouter();
 const postDetail = (uuid, category) => {
   router.push({
@@ -59,7 +58,7 @@ const postDetail = (uuid, category) => {
       category,
     },
   });
-  // postStore().refId = refId;
+  // postStore.refId = refId;
 };
 
 const postTitle = (title, max) => {
@@ -70,8 +69,8 @@ const postTitle = (title, max) => {
   }
 };
 onBeforeUnmount(() => {
-  Store().pageData.pager = [];
-  Store().pageData.pageCurrent = 1;
-  Store().pageData.pageSize = 20;
+  Store.pageData.pager = [];
+  Store.pageData.pageCurrent = 1;
+  Store.pageData.pageSize = 20;
 });
 </script>

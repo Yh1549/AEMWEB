@@ -1,23 +1,11 @@
 <template>
-  <div
-    class="scrollbar transition-all duration-500 z-10 overflow-scroll overflow-x-hidden"
-    :class="!Store().menuToggle ? '-left-[100%]' : ''"
-  >
-    <div class="w-full bg-background h-screen lg:inline-block">
-      <nav>
-        <navItem
-          v-for="item in navTitle"
-          :category="item.name"
-          :icon="item.icon"
-        >
-          <template #title>{{ item.title }}</template>
-        </navItem>
-      </nav>
-    </div>
-  </div>
+  <nav class="w-full lg:inline-block transition-all duration-500 z-10 pb-12">
+    <navItem v-for="item in navTitle" :category="item.name" :icon="item.icon">
+      <template #title>{{ item.title }}</template>
+    </navItem>
+  </nav>
 </template>
 <script setup>
-import { Store } from "../store/store";
 import { ref } from "vue";
 import navItem from "./navItem.vue";
 

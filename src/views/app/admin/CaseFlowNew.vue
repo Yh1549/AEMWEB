@@ -9,15 +9,13 @@
           <span class="block">系統</span>
           <label class="inpLabel">
             <select
-              name="relSys"
-              data-valid-option="notNull"
+              v-verify:[relSysValidArg]="flowCheckList.relSys"
               v-model.trim="flow.relSys"
               class="w-full inp"
-              @change="InputValidation(Store().caseFlowCheck, $event)"
             >
               <option disabled value="">請選擇審核流程系統</option>
               <option
-                v-for="item in Store().postOption.System"
+                v-for="item in Store.postOption.System"
                 :key="item.memo"
                 :value="item.name"
               >
@@ -25,33 +23,35 @@
               </option>
             </select>
           </label>
+          <inputErrorMsg v-if="flowCheckList.relSys.pass == false">{{
+            flowCheckList.relSys.msg
+          }}</inputErrorMsg>
         </div>
         <div class="mr-5">
           <span class="block">類型</span>
           <label class="inpLabel">
             <select
-              name="type"
-              data-valid-option="notNull"
+              v-verify:[typeValidArg]="flowCheckList.type"
               v-model.trim="flow.type"
               class="w-full inp"
-              @change="InputValidation(Store().caseFlowCheck, $event)"
             >
               <option disabled value="">請選擇審核流程類型</option>
               <option value="POST">公告</option>
               <option value="AD">廣告</option>
             </select>
           </label>
+          <inputErrorMsg v-if="flowCheckList.type.pass == false">{{
+            flowCheckList.type.msg
+          }}</inputErrorMsg>
         </div>
         <div>
           <span class="block">層級總數</span>
           <label class="inpLabel">
             <select
-              name="totalLevel"
-              data-valid-option="notNull"
+              v-verify:[totalLevelValidArg]="flowCheckList.totalLevel"
               v-model.trim="flow.totalLevel"
               class="w-full inp"
               ref="selectLevels"
-              @change="InputValidation(Store().caseFlowCheck, $event)"
             >
               <option disabled value="">請選擇流程層級總數</option>
               <option v-for="item in 3" :key="item" :value="item">
@@ -59,21 +59,25 @@
               </option>
             </select>
           </label>
+          <inputErrorMsg v-if="flowCheckList.totalLevel.pass == false">{{
+            flowCheckList.totalLevel.msg
+          }}</inputErrorMsg>
         </div>
       </div>
-      <div>
+      <div class="h-24">
         <span class="block">名稱</span>
         <label class="inpLabel w-full">
           <input
             type="text"
             id="memo"
-            name="memo"
-            data-valid-option="notNull,charMax(39)"
+            v-verify:[memoValidArg]="flowCheckList.memo"
             v-model.trim="flow.memo"
             class="w-full inp"
-            @keyup="InputValidation(Store().caseFlowCheck, $event)"
           />
         </label>
+        <inputErrorMsg v-if="flowCheckList.memo.pass == false">{{
+          flowCheckList.memo.msg
+        }}</inputErrorMsg>
       </div>
     </div>
   </div>
@@ -127,18 +131,21 @@
       </div>
     </div>
   </div>
-
   <button class="btn btnClick mt-8 block mx-auto" @click="submit">
     確認送出
   </button>
 </template>
 <script setup>
-import { ref, reactive, computed, onBeforeMount } from "vue";
+import { onBeforeMount, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { CreateCaseFlowAndDetail, findSysList } from "../../../api/service";
-import { commonStore } from "../../../store/commonStore";
-import { Store } from "../../../store/store";
-import { InputValidation } from "../../../formValidation/inputCase";
+import inputErrorMsg from "../../../components/inputErrorMsg.vue";
+import { useCommonStore } from "../../../store/commonStore";
+import { useStore } from "../../../store/store";
+const Store = useStore();
+const commonStore = useCommonStore();
+const router = useRouter();
+
 const flow = reactive({
   relSys: "",
   type: "",
@@ -146,7 +153,16 @@ const flow = reactive({
   memo: "",
   detailList: [],
 });
-const errorMsg = ref("");
+const flowCheckList = ref({
+  relSys: { pass: null, msg: null },
+  type: { pass: null, msg: null },
+  totalLevel: { pass: null, msg: null },
+  memo: { pass: null, msg: null },
+});
+const relSysValidArg = ["notNull"];
+const typeValidArg = ["notNull"];
+const totalLevelValidArg = ["notNull"];
+const memoValidArg = ["notNull", "charMax(39)"];
 
 // 自動填入審核角色名稱
 const levelAutofill = () => {
@@ -163,68 +179,42 @@ const selectLevels = ref(null);
 const toSelectLevels = () => {
   selectLevels.value.focus();
 };
-
-const router = useRouter();
+const validCheck = () => {
+  for (let item in flowCheckList.value) {
+    if (flowCheckList.value[item].pass != true) {
+      return false;
+    }
+  }
+  return true;
+};
 const submit = () => {
-  let pass = false;
-  for (let value in Store().caseFlowCheck) {
-    if (Store().caseFlowCheck[value] != null) {
-      for (let i of Store().caseFlowCheck[value]) {
-        if (i.result === false) {
-          pass = false;
-          errorMsg.value = i.msg;
-          wrongInfo(value);
-          break;
-        } else {
-          pass = true;
-        }
-      }
-      if (!pass) {
-        break;
-      }
-    } else {
-      pass = false;
-      errorMsg.value = "不可為空";
-      wrongInfo(value);
-      break;
-    }
-  }
-  if (pass === true) {
-    Store().alertShow = true;
-    Store().alertObj = {
-      msg: "確定送出審核流程？",
-      func: async (e) => {
-        if (e.target.value === "confirm") {
-          levelAutofill();
-          const res = await CreateCaseFlowAndDetail(flow);
-          if (res.desc == "successful") {
-            Store().routerPush = "caseflow";
-            router.push({ name: "SvcSucess" });
-          } else {
-            commonStore().SvcFail.msg = res.desc;
-            router.push({ name: "SvcFail" });
-          }
-        }
-      },
+  if (validCheck() != true) {
+    Store.alertShow = true;
+    Store.alertObj = {
+      msg: "資料有誤,請重新確認",
+      func: (e) => {},
     };
+    return;
   }
-};
-const wrongInfo = (name) => {
-  let msgObj = {
-    relSys: "流程系統",
-    type: "流程類型",
-    totalLevel: "層級總數",
-    memo: "流程名稱",
+  Store.alertShow = true;
+  Store.alertObj = {
+    msg: "確定送出審核流程？",
+    func: async (e) => {
+      if (e.target.value === "confirm") {
+        levelAutofill();
+        const res = await CreateCaseFlowAndDetail(flow);
+        if (res.desc == "successful") {
+          Store.routerPush = "caseflow";
+          router.push({ name: "SvcSucess" });
+        } else {
+          commonStore.SvcFail.msg = res.desc;
+          router.push({ name: "SvcFail" });
+        }
+      }
+    },
   };
-  for (let i = 0; i < Object.keys(msgObj).length; i++) {
-    if (Object.keys(msgObj)[i] == name) {
-      Store().alertObj.msg = Object.values(msgObj)[i] + " " + errorMsg.value;
-      break;
-    }
-  }
-  Store().alertShow = true;
-  Store().alertObj.func = (e) => {};
 };
+
 onBeforeMount(async () => {
   await findSysList();
 });

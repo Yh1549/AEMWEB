@@ -14,26 +14,29 @@
 <script setup>
 import { ref } from "vue";
 import apiRequest from "../api/apiRequest";
-import { adStore, Store } from "../store/store";
+import { useAdStore, useStore } from "../store/store";
+const Store = useStore();
+const adStore = useAdStore();
+
 const props = defineProps(["options", "blockAdSvc"]);
 
-const selectedBlock = ref(Store().adBlockMemo.block);
+const selectedBlock = ref(Store.adBlockMemo.block);
 
 const getSelectBlockAd = () => {
-  Store().loadingSpinner = true;
-  Store().adBlockMemo.block = selectedBlock.value;
+  Store.loadingSpinner = true;
+  Store.adBlockMemo.block = selectedBlock.value;
   apiRequest
-    .get(`public/${props.blockAdSvc}`, {
+    .get(`${props.blockAdSvc}`, {
       params: {
-        system: adStore().selected,
+        system: adStore.selected,
         block: selectedBlock.value.block,
       },
     })
     .then((res) => {
-      Store().loadingSpinner = false;
+      Store.loadingSpinner = false;
       if (res.desc == "successful") {
-        Store().loadingSpinner = false;
-        adStore().List = res.resBody.advertiseModelList;
+        Store.loadingSpinner = false;
+        adStore.List = res.resBody.advertiseModelList;
       }
     })
     .catch();

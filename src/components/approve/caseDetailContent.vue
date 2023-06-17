@@ -6,7 +6,7 @@
     </span>
     <p
       v-html="props.caseDetail.content"
-      class="bg-white shadow-lg rounded p-2 border border-primaryDark break-words"
+      class="tiptapStyle bg-white shadow-lg rounded p-2 border border-primaryDark break-words"
     ></p>
   </div>
 </template>

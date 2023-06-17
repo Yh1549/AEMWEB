@@ -2,25 +2,25 @@
   <div class="flex flex-wrap items-center gap-2">
     <span class="font-bold">系統/類別或區域:</span>
     <span class="text-center">{{
-      Store().getRelSys(Store().detailinfo?.relSys)
+      Store.getRelSys(props.detailInfo?.relSys)
     }}</span>
     <span class="text-center">{{
-      Store().getRelSys(Store().detailinfo?.system)
+      Store.getRelSys(props.detailInfo?.system)
     }}</span
     >/
-    <span v-if="Store().detailinfo.tag != 'default'" class="text-center">{{
-      Store().getTag(Store().detailinfo?.tag)
+    <span v-if="props.detailInfo.tag != 'default'" class="text-center">{{
+      Store.getTag(props.detailInfo?.tag)
     }}</span>
-    <span>{{ adStore().getBlockMemo(Store().detailinfo?.block) }}</span>
+    <span>{{ adStore.getBlockMemo(props.detailInfo?.block) }}</span>
     <span
-      v-if="Store().detailinfo.status"
+      v-if="props.detailInfo.status"
       class="btn inline-block text-center p-2 cursor-default"
-      :class="commonStore().getCaseStatusName(Store().detailinfo.status).color"
+      :class="commonStore.getCaseStatusName(props.detailInfo.status).color"
     >
-      {{ commonStore().getCaseStatusName(Store().detailinfo.status).title }}
+      {{ commonStore.getCaseStatusName(props.detailInfo.status).title }}
     </span>
     <span
-      v-if="Store().detailinfo.top && Store().detailinfo?.top == '1'"
+      v-if="props.detailInfo.top && props.detailInfo?.top == '1'"
       class="btn inline-block text-center p-2 cursor-default"
     >
       置頂
@@ -28,6 +28,10 @@
   </div>
 </template>
 <script setup>
-import { Store, adStore } from "../../store/store";
-import { commonStore } from "../../store/commonStore";
+import { useCommonStore } from "../../store/commonStore";
+import { useAdStore, useStore } from "../../store/store";
+const props = defineProps(["detailInfo"]);
+const Store = useStore();
+const adStore = useAdStore();
+const commonStore = useCommonStore();
 </script>

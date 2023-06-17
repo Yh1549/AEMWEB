@@ -6,7 +6,7 @@
           <span class="text-2xl font-bold text-primaryDark">{{}}</span>
           <div class="">
             <h1 class="text-2xl font-bold text-primaryDark">
-              Welcome，{{ Store().currentUser().name }}
+              Welcome，{{ Store.currentUser().name }}
             </h1>
             <span class="my-2 font-bold text-primaryDark"
               >歡迎來到聯邦銀行公告系統</span
@@ -99,12 +99,11 @@
   </div>
 </template>
 <script setup>
-import { Store } from "../../store/store";
-import { commonStore } from "../../store/commonStore";
-import { ref, reactive, onMounted, onBeforeMount } from "vue";
-import apiRequest from "../../api/apiRequest";
-import { NoticeForRoleLightVer } from "../../api/service";
+import { onBeforeMount, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
+import { NoticeForRoleLightVer } from "../../api/service";
+import { useStore } from "../../store/store";
+const Store = useStore();
 
 const router = useRouter();
 const noticeData = reactive({
@@ -116,15 +115,15 @@ const showdata = ref("請點選月曆"),
 const attrs = ref([]);
 const calendarTitle = ref("");
 onBeforeMount(async () => {
-  if (Store().getSvcAuth("CheckCaseAndRelease")) {
+  if (Store.getSvcAuth("CheckCaseAndRelease")) {
     calendarTitle.value = "待審核案件";
     const res = await NoticeForRoleLightVer();
     if (res.desc == "successful") {
-      Store().noticeLight = res.resBody.caseList;
-      Store().noticeLight.forEach((e) => {
+      Store.noticeLight = res.resBody.caseList;
+      Store.noticeLight.forEach((e) => {
         noticeData.detail[e.caseTitle] = e.caseUuid;
         e.startTime = e.startTime.split(" ")[0].split("/").join("-");
-        noticeData.sum = Store().noticeLight.reduce(function (
+        noticeData.sum = Store.noticeLight.reduce(function (
           accumulator,
           currentValue
         ) {
@@ -176,7 +175,7 @@ const onDayClick = (day) => {
   }
 };
 const approveDetail = (caseUuid) => {
-  Store().approveSign = true;
+  Store.approveSign = true;
   router.push({
     name: "approveDetail",
     params: {

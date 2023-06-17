@@ -5,7 +5,7 @@
   <loadSpinner>
     <template #title>載入中</template>
   </loadSpinner>
-  <div v-if="!Store().loadingSpinner">
+  <div v-if="!Store.loadingSpinner">
     <div v-if="!postExist" class="w-full">
       <no-result></no-result>
     </div>
@@ -16,17 +16,19 @@
   </div>
 </template>
 <script setup>
-import { ref, computed, onBeforeMount } from "vue";
-import { Store, postStore } from "../../../store/store";
-import { findSysList, NoticeForRole } from "../../../api/service";
+import { computed, onBeforeMount, ref } from "vue";
+import { NoticeForRole, findSysList } from "../../../api/service";
 import noResult from "../../../components/NoResultPage.vue";
-import pageControl from "../../../components/pageControl.vue";
-import ApproveList from "../../../components/list/ApproveList.vue";
 import caseSearch from "../../../components/approve/caseSearch.vue";
+import ApproveList from "../../../components/list/ApproveList.vue";
+import pageControl from "../../../components/pageControl.vue";
+import { usePostStore, useStore } from "../../../store/store";
+const Store = useStore();
+const postStore = usePostStore();
 const allCase = ref();
 
 const postExist = computed(() => {
-  if (postStore().List.length > 0) {
+  if (postStore.List.length > 0) {
     return true;
   } else {
     return false;
@@ -34,21 +36,21 @@ const postExist = computed(() => {
 });
 
 const resetPage = computed(() => {
-  return postStore().List;
+  return postStore.List;
 });
 
 onBeforeMount(async () => {
-  postStore().historyCase = false;
-  Store().loadingSpinner = true;
+  postStore.historyCase = false;
+  Store.loadingSpinner = true;
   const res = await NoticeForRole();
   if (res.desc == "successful") {
-    Store().loadingSpinner = false;
-    postStore().List = res.resBody.caseList;
-    allCase.value = postStore().List;
+    Store.loadingSpinner = false;
+    postStore.List = res.resBody.caseList;
+    allCase.value = postStore.List;
   } else {
-    Store().loadingSpinner = false;
-    Store().alertShow = true;
-    Store().alertObj = {
+    Store.loadingSpinner = false;
+    Store.alertShow = true;
+    Store.alertObj = {
       msg: "查無審核案件",
       func: (e) => {},
     };

@@ -1,47 +1,47 @@
 <template>
   <listTable>
     <template #th>
-      <th v-if="!postStore().historyCase">勾選</th>
+      <th v-if="!postStore.historyCase">勾選</th>
       <th>類別</th>
       <th>時間</th>
       <th>標題</th>
       <th>操作類型</th>
       <th>發布人</th>
       <th>系統</th>
-      <th v-if="postStore().historyCase">狀態</th>
+      <th v-if="postStore.historyCase">狀態</th>
       <th>細節</th>
     </template>
     <template #td
       ><tr
-        v-for="approveCase in Store().pageData.pager"
+        v-for="approveCase in Store.pageData.pager"
         :key="approveCase.uuid"
         class="border-l-8"
         :class="[
-          Store().chosenList.includes(approveCase.caseUuid)
+          Store.chosenList.includes(approveCase.caseUuid)
             ? 'border-secondaryDark'
             : 'border-primaryDark',
         ]"
       >
-        <td v-if="!postStore().historyCase">
+        <td v-if="!postStore.historyCase">
           <label class="checkBox relative flex"
             ><input
               type="checkbox"
               class="hidden"
               :id="approveCase.caseUuid"
               :value="approveCase.caseUuid"
-              v-model="Store().chosenList" /><span
+              v-model="Store.chosenList" /><span
               class="checkMark border-primaryDark"
             ></span
             ><span class="checkMarkBg"></span
           ></label>
         </td>
         <td>
-          {{ commonStore().caseType[approveCase.type]?.title }}
+          {{ commonStore.caseType[approveCase.type]?.title }}
         </td>
         <td>
           {{
-            Store().dateReform(
-              Store().timeReform(approveCase.startTime)[0],
+            Store.dateReform(
+              Store.timeReform(approveCase.startTime)[0],
               ".",
               "/"
             )
@@ -51,18 +51,18 @@
         <td>
           <span
             class="rounded p-2 font-bold text-white"
-            :class="commonStore().actionType[approveCase.actionType]?.color"
-            >{{ commonStore().actionType[approveCase.actionType]?.title }}</span
+            :class="commonStore.actionType[approveCase.actionType]?.color"
+            >{{ commonStore.actionType[approveCase.actionType]?.title }}</span
           >
         </td>
         <td>{{ approveCase.applicantName }}</td>
-        <td>{{ Store().getRelSys(approveCase.relSys) ?? "無" }}</td>
-        <td v-if="postStore().historyCase">
+        <td>{{ Store.getRelSys(approveCase.relSys) ?? "無" }}</td>
+        <td v-if="postStore.historyCase">
           <span
             class="btn p-2"
-            :class="commonStore().getCaseStatusName(approveCase.status)?.color"
+            :class="commonStore.getCaseStatusName(approveCase.status)?.color"
           >
-            {{ commonStore().getCaseStatusName(approveCase.status)?.title }}
+            {{ commonStore.getCaseStatusName(approveCase.status)?.title }}
           </span>
         </td>
         <td>
@@ -78,10 +78,13 @@
 </template>
 <script setup>
 import { onBeforeUnmount } from "vue";
-import { Store, postStore } from "../../store/store";
-import { commonStore } from "../../store/commonStore";
 import { useRoute, useRouter } from "vue-router";
+import { useCommonStore } from "../../store/commonStore";
+import { usePostStore, useStore } from "../../store/store";
 import listTable from "../listTable.vue";
+const Store = useStore();
+const postStore = usePostStore();
+const commonStore = useCommonStore();
 const route = useRoute();
 const router = useRouter();
 const postTitle = (title, max) => {
@@ -93,9 +96,9 @@ const postTitle = (title, max) => {
 };
 const approveDetail = (caseUuid) => {
   if (route.fullPath == "/approvehistory") {
-    Store().approveSign = false;
+    Store.approveSign = false;
   } else {
-    Store().approveSign = true;
+    Store.approveSign = true;
   }
   router.push({
     name: "approveDetail",
@@ -106,8 +109,8 @@ const approveDetail = (caseUuid) => {
 };
 
 onBeforeUnmount(() => {
-  Store().pageData.pager = [];
-  Store().pageData.pageCurrent = 1;
-  Store().pageData.pageSize = 20;
+  Store.pageData.pager = [];
+  Store.pageData.pageCurrent = 1;
+  Store.pageData.pageSize = 20;
 });
 </script>

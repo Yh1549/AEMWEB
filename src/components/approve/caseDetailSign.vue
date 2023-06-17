@@ -5,15 +5,15 @@
         單位經辦/公告發布人
       </p>
       <p class="font-bold text-center text-2xl">
-        {{ Store().approveCase.applicantName }}
+        {{ Store.approveCase.applicantName }}
       </p>
       <p class="font-bold text-center mb-1 text-cancel">
-        {{ Store().approveCase.startTime }}
+        {{ Store.approveCase.startTime }}
       </p>
     </div>
-    <!-- {{  Store().caseSign }} -->
+    <!-- {{  Store.caseSign }} -->
     <div
-      v-for="i in Store().caseSign"
+      v-for="i in Store.caseSign"
       :key="i"
       class="rounded bg-white shadow-md w-full mb-4 mx-2 md:w-4/16 relative"
     >
@@ -37,15 +37,15 @@
       </div>
     </div>
     <div
-      v-for="i in Store().approveCase.totalLevel"
-      v-show="i > Store().caseSign.length"
+      v-for="i in Store.approveCase.totalLevel"
+      v-show="i > Store.caseSign.length"
       :key="i"
       class="rounded bg-white shadow-md w-full mb-4 mx-2 md:w-4/16 relative"
     >
       <p
         class="font-bold text-center py-2 mb-2"
         :class="
-          i == Store().approveCase.nowLevel
+          i == Store.approveCase.nowLevel
             ? 'bg-submit text-white'
             : 'bg-gray-300'
         "
@@ -60,12 +60,9 @@
       </p>
     </div>
   </div>
-  <div
-    class="pb-8 mx-auto flex justify-evenly w-full"
-    v-if="Store().approveSign"
-  >
+  <div class="pb-8 mx-auto flex justify-evenly w-full" v-if="Store.approveSign">
     <button
-      v-if="Store().getSvcAuth('RejectCase')"
+      v-if="Store.getSvcAuth('RejectCase')"
       class="btn btnClick w-1/4 md:w-1/6 bg-cancel font-bold"
       @click="disapprove"
     >
@@ -73,7 +70,7 @@
       <i v-if="buttonSpinnerReject" class="fa-solid fa-spinner fa-spin"></i>
     </button>
     <button
-      v-if="Store().getSvcAuth('CheckCaseAndRelease')"
+      v-if="Store.getSvcAuth('CheckCaseAndRelease')"
       class="btn btnClick w-1/4 md:w-1/6 bg-submit font-bold"
       @click="approve"
     >
@@ -83,24 +80,26 @@
   </div>
 </template>
 <script setup>
-import { Store, postStore } from "../../store/store";
-import { useRouter, useRoute } from "vue-router";
-import { ref, onBeforeMount } from "vue";
+import { onBeforeMount, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import apiRequest from "../../api/apiRequest";
-import { commonStore } from "../../store/commonStore";
+import { useCommonStore } from "../../store/commonStore";
+import { useStore } from "../../store/store";
+const Store = useStore();
+const commonStore = useCommonStore();
 const buttonSpinnerApprove = ref(false);
 const buttonSpinnerReject = ref(false);
 const route = useRoute();
 const sign = ref({});
-sign.value = Store().caseSign;
+sign.value = Store.caseSign;
 const router = useRouter();
 const id = route.params.caseUuid;
-const reSign = Store().caseSign.length;
+const reSign = Store.caseSign.length;
 
 const approve = () => {
-  Store().alertShow = true;
+  Store.alertShow = true;
   buttonSpinnerApprove.value = true;
-  Store().alertObj = {
+  Store.alertObj = {
     msg: "確定要通過審核嗎？",
     func: async (e) => {
       if (e.target.value === "confirm") {
@@ -109,12 +108,12 @@ const approve = () => {
           .then((res) => {
             buttonSpinnerApprove.value = false;
             if (res.desc == "successful") {
-              Store().routerPush = "approveAll";
+              Store.routerPush = "approveAll";
               router.push({
                 name: "SvcSucess",
               });
             } else {
-              commonStore().SvcFail.msg = res.desc;
+              commonStore.SvcFail.msg = res.desc;
               router.push({
                 name: "SvcFail",
               });
@@ -129,9 +128,9 @@ const approve = () => {
 };
 const disapprove = () => {
   // 退件
-  Store().alertShow = true;
+  Store.alertShow = true;
   buttonSpinnerReject.value = true;
-  Store().alertObj = {
+  Store.alertObj = {
     msg: "確定要退件嗎？",
     func: async (e) => {
       if (e.target.value === "confirm") {
@@ -140,10 +139,10 @@ const disapprove = () => {
           .post("RejectCase", { caseUuid: id })
           .then((res) => {
             if (res.desc == "successful") {
-              Store().routerPush = "approveAll";
+              Store.routerPush = "approveAll";
               router.push({ name: "SvcSucess" });
             } else {
-              commonStore().SvcFail.msg = res.desc;
+              commonStore.SvcFail.msg = res.desc;
               router.push({ name: "SvcFail" });
             }
           })

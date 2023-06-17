@@ -1,14 +1,12 @@
 <template>
   <div
     class="flex justify-center items-center"
-    :class="
-      Store().currentNewStep == props.stepValue[0] ? ' ' : 'hidden md:flex'
-    "
+    :class="Store.currentNewStep == props.stepValue[0] ? ' ' : 'hidden md:flex'"
   >
     <span
       class="text-center font-bold text-2xl"
       :class="
-        Store().currentNewStep == props.stepValue[0]
+        Store.currentNewStep == props.stepValue[0]
           ? 'text-secondary'
           : 'text-primaryDark'
       "
@@ -19,6 +17,8 @@
   </div>
 </template>
 <script setup>
-import { Store, userStore } from "../store/store";
+import { useStore } from "../store/store";
+const Store = useStore();
+
 const props = defineProps(["stepValue"]);
 </script>

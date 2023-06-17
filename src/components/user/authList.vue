@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div class="flex flex-wrap w-full">
+    <div class="flex flex-wrap w-full gap-2">
       <button
-        v-for="tab of tabs"
-        class="md:px-3 p-2 mt-1 rounded-t rounded-b md:rounded-b-none border-primaryLight text-center font-bold hover:cursor-pointer hover:bg-secondaryLight mr-1 border-t-2 border-l-2 border-r-2 border-b-2 md:border-b-0"
+        v-for="tab of UserSvcListTabs"
+        class="btn p-2 my-2 bg-primaryLight text-center text-black font-bold cursor-pointer hover:bg-secondaryLight"
         :class="{
           ' bg-secondaryDark': tabCurrent == tab.tag,
         }"
@@ -14,22 +14,20 @@
         {{ tab.name }}
       </button>
     </div>
-    <div class="border-2 border-primaryLight">
+    <div class="border-2 border-primaryDark rounded p-2">
       <div
         v-for="tab of tabRender"
-        class="flex flex-wrap rounded p-2"
+        class="flex flex-wrap gap-4 rounded p-2"
         :key="tab"
       >
-        <span class="w-full mb-2 border-b-2 border-primaryLight">
-          <span class="font-bold text-lg">
-            {{ tab.name }}
-          </span>
-        </span>
+        <p class="w-full font-bold text-lg">
+          {{ tab.name }}
+        </p>
         <label
           v-for="svc in svcListRender(tab.tag)"
-          class="w-full md:w-3/16 m-1 cursor-pointer border-2 rounded box-border hover:border-secondary flex"
+          class="w-1/4 cursor-pointer border-2 rounded box-border hover:border-secondary flex"
           :class="
-            prop.currentStore.authority?.some((el) => el === svc.svcName)
+            props.set.authority?.some((el) => el === svc.svcName)
               ? 'border-primaryDark bg-secondaryLight/50'
               : 'border-primaryLight '
           "
@@ -40,7 +38,7 @@
               <i
                 class="fa-circle-check"
                 :class="
-                  prop.currentStore.authority?.some((el) => el === svc.svcName)
+                  props.set.authority?.some((el) => el === svc.svcName)
                     ? 'fa-solid'
                     : 'fa-regular'
                 "
@@ -48,16 +46,15 @@
             </span>
             <input
               type="checkbox"
-              :disabled="prop.change"
+              :disabled="props.change"
               :value="svc.svcName"
-              v-model="prop.currentStore.authority"
+              v-model="props.set.authority"
               hidden
             />
           </div>
           <div class="w-full my-2">
             <span class="font-bold block">{{ svc.summary }}</span>
-            <!-- <span class="font-bold hidden md:block text-sm">{{ svc.desc }}</span> -->
-            <span class="opacity-80 text-sm">{{ svc.svcName }}</span>
+            <span class="opacity-80 text-sm block">{{ svc.svcName }}</span>
           </div>
         </label>
       </div>
@@ -65,25 +62,67 @@
   </div>
 </template>
 <script setup>
-import { ref, computed, watch } from "vue";
-import { userStore, Store } from "../../store/store";
-const prop = defineProps(["currentStore", "change"]);
+import { computed, ref, watch } from "vue";
+import { useUserStore } from "../../store/store";
+
+const userStore = useUserStore();
+
+const props = defineProps(["set", "change"]);
+const emit = defineEmits(["authoritySet"]);
+const UserSvcListTabs = ref([
+  {
+    name: "全部",
+    tag: "all",
+  },
+  {
+    name: "公告",
+    tag: "post",
+  },
+  {
+    name: "審核",
+    tag: "Case",
+  },
+  {
+    name: "使用者",
+    tag: "User",
+  },
+  {
+    name: "部門",
+    tag: "Dept",
+  },
+  {
+    name: "廣告",
+    tag: "advertise",
+  },
+  {
+    name: "排程",
+    tag: "schedule",
+  },
+  {
+    name: "錯誤代碼",
+    tag: "SysMsg",
+  },
+  {
+    name: "文本",
+    tag: "MsgInfo",
+  },
+]);
 watch(
-  () => prop.currentStore.authority,
+  () => props.set.authority,
   () => {
-    if (prop.currentStore.authority.length == 0) {
-      prop.currentStore.sets = [];
+    if (props.set.authority.length == 0) {
+      props.set.sets = [];
+      emit("authoritySet", props.set);
     }
   }
 );
-const tabs = ref(userStore().UserSvcListTabs);
 const tabCurrent = ref("all");
 
 const svcListRender = (tab) => {
   let svcList = [];
-  for (let item in userStore().svcListAll) {
-    if (userStore().svcListAll[item].tag === tab) {
-      svcList.push(userStore().svcListAll[item]);
+  for (let item in userStore.svcListAll) {
+    if (userStore.svcListAll[item].tag === tab) {
+      svcList.push(userStore.svcListAll[item]);
     }
   }
   return svcList;
@@ -91,16 +130,16 @@ const svcListRender = (tab) => {
 const tabRender = computed(() => {
   let list = [];
   if (tabCurrent.value == "all") {
-    for (let item in userStore().UserSvcListTabs) {
-      if (userStore().UserSvcListTabs[item].tag != "all") {
-        list.push(userStore().UserSvcListTabs[item]);
+    for (let item in UserSvcListTabs.value) {
+      if (UserSvcListTabs.value[item].tag != "all") {
+        list.push(UserSvcListTabs.value[item]);
       }
     }
     return list;
   } else {
-    for (let item in userStore().UserSvcListTabs) {
-      if (userStore().UserSvcListTabs[item].tag == tabCurrent.value) {
-        list = [userStore().UserSvcListTabs[item]];
+    for (let item in UserSvcListTabs.value) {
+      if (UserSvcListTabs.value[item].tag == tabCurrent.value) {
+        list = [UserSvcListTabs.value[item]];
       }
     }
     return list;

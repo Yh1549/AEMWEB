@@ -1,14 +1,17 @@
 <template>
   <div
     class="w-full h-full transition-transform duration-500 absolute py-8"
-    :class="userStore().userUpdateToggle ? '' : '-translate-x-[100%]'"
+    :class="userStore.userUpdateToggle ? '' : '-translate-x-[100%]'"
   >
-    <component :is="userStore().userCurrentUpdate"></component>
+    <component
+      :is="userStore.userCurrentUpdate"
+      @checking="checkingEmit"
+    ></component>
     <loadSpinner>
       <template #title>儲存中</template>
     </loadSpinner>
     <div
-      v-if="!Store().loadingSpinner"
+      v-if="!Store.loadingSpinner"
       class="w-full flex justify-center gap-10 py-4"
     >
       <button
@@ -24,56 +27,77 @@
         儲存變更
       </button>
     </div>
-    <span
-      v-if="SvcMsg !== ''"
-      class="font-bold block text-center text-sm md:text-lg w-1/2 mx-auto"
-      :class="SvcMsg ? 'text-submit' : 'text-cancel'"
-      >{{ SvcMsg ? "修改成功" : "修改失敗，請重新再試" }}</span
-    >
   </div>
 </template>
 <script setup>
 import { ref } from "vue";
-import { Store, userStore } from "../../store/store";
-import apiRequest from "../../api/apiRequest";
-import { UpdateUser, SelectAboutUser } from "../../api/service";
-
+import { SelectAboutUser, UpdateUser } from "../../api/service";
+import { useStore, useUserStore } from "../../store/store";
 import loadSpinner from "../loadSpinner.vue";
+const Store = useStore();
+const userStore = useUserStore();
+const checking = ref({});
 
-const SvcMsg = ref("");
 const backToEdit = () => {
-  SvcMsg.value = "";
-  userStore().userModify = {
-    empid: userStore().userEdit.empid,
+  userStore.userModify = {
+    empid: userStore.userEdit.empid,
   };
-  userStore().userUpdateToggle = !userStore().userUpdateToggle;
+  userStore.userUpdateToggle = !userStore.userUpdateToggle;
+};
+const checkingEmit = (value) => {
+  checking.value = value;
+};
+const validCheck = () => {
+  if (checking.value.pass != true) {
+    return false;
+  }
+  return true;
+};
+const updateUser = async () => {
+  let res = await UpdateUser(userStore.userModify);
+  if (res.desc == "successful") {
+    Store.alertShow = true;
+    Store.alertObj = {
+      msg: `修改成功`,
+      func: async (e) => {
+        userStore.userUpdateToggle = !userStore.userUpdateToggle;
+      },
+    };
+  } else {
+    Store.alertShow = true;
+    Store.alertObj = {
+      msg: `修改失敗，請重新再試,${res.desc}`,
+      func: async (e) => {},
+    };
+  }
+  Store.loadingSpinner = false;
+  res = await SelectAboutUser(userStore.userEdit.empid);
+  if (res.desc == "successful") {
+    userStore.userEdit = res.resBody;
+  }
+  userStore.userModify = {
+    empid: userStore.userEdit.empid,
+  };
 };
 const updateUserBasic = async () => {
-  userStore().userModify.empid = userStore().userEdit.empid;
-  Store().alertShow = true;
-  Store().alertObj = {
-    msg: "確定修改？",
-    func: async (e) => {
-      if (e.target.value === "confirm") {
-        Store().loadingSpinner = true;
-        let res = await UpdateUser(userStore().userModify);
-        if (res.desc == "successful") {
-          Store().loadingSpinner = false;
-          await SelectAboutUser(userStore().userEdit.empid);
-          userStore().userModify = {
-            empid: userStore().userEdit.empid,
-          };
-          SvcMsg.value = true;
-          // mimaInp.value = false;
-        } else {
-          Store().loadingSpinner = false;
-          userStore().userModify = {
-            empid: userStore().userEdit.empid,
-          };
-          SvcMsg.value = false;
+  if (validCheck()) {
+    userStore.userModify.empid = userStore.userEdit.empid;
+    Store.alertShow = true;
+    Store.alertObj = {
+      msg: "確定修改？",
+      func: async (e) => {
+        if (e.target.value === "confirm") {
+          Store.loadingSpinner = true;
+          updateUser();
         }
-      }
-    },
-  };
+      },
+    };
+  } else {
+    Store.alertShow = true;
+    Store.alertObj = {
+      msg: `請確認輸入資料是否正確`,
+      func: async (e) => {},
+    };
+  }
 };
 </script>

@@ -11,7 +11,7 @@
       <th>查看編輯</th>
     </template>
     <template #td
-      ><tr v-for="user in Store().pageData.pager" :key="user.empid">
+      ><tr v-for="user in Store.pageData.pager" :key="user.empid">
         <td class="flex items-center">
           <span
             class="text-2xl mr-1"
@@ -23,8 +23,8 @@
         </td>
         <td>{{ user.name }}</td>
         <td>
-          {{ Store().getDeptName(user.deptcode)?.name }}/
-          {{ Store().getDeptName(user.deptcode)?.unit }}
+          {{ Store.getDeptName(user.deptcode)?.name }}/
+          {{ Store.getDeptName(user.deptcode)?.unit }}
         </td>
         <td>{{ user.failcnt }}</td>
         <td>{{ user.memo }}</td>
@@ -42,10 +42,11 @@
   </listTable>
 </template>
 <script setup>
-import { useRouter, useRoute } from "vue-router";
-import { Store } from "../../store/store";
 import { onBeforeUnmount } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "../../store/store";
 import listTable from "../listTable.vue";
+const Store = useStore();
 
 const router = useRouter();
 
@@ -53,8 +54,8 @@ const userDetailEnter = (user) => {
   router.push({ name: "userEdit", params: { userId: user.empid } });
 };
 onBeforeUnmount(() => {
-  Store().pageData.pager = [];
-  Store().pageData.pageCurrent = 1;
-  Store().pageData.pageSize = 20;
+  Store.pageData.pager = [];
+  Store.pageData.pageCurrent = 1;
+  Store.pageData.pageSize = 20;
 });
 </script>

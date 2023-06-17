@@ -18,7 +18,7 @@
             </td>
           </tr>
           <tr
-            v-for="i of Store().scheduleHistory"
+            v-for="i of Store.scheduleHistory"
             :key="i"
             class="bg-background hover:bg-secondaryLight/50 h-8"
           >
@@ -33,5 +33,6 @@
   </div>
 </template>
 <script setup>
-import { Store } from "../../store/store";
+import { useStore } from "../../store/store";
+const Store = useStore();
 </script>

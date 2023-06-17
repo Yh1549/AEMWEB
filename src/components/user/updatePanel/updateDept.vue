@@ -5,25 +5,23 @@
     </span>
     <span
       >目前所屬部門:{{
-        Store().getDeptName(userStore().userEdit.deptcode)?.name ?? "無"
-      }}{{
-        Store().getDeptName(userStore().userEdit.deptcode)?.unit ?? "無"
-      }}</span
+        Store.getDeptName(userStore.userEdit.deptcode)?.name ?? "無"
+      }}{{ Store.getDeptName(userStore.userEdit.deptcode)?.unit ?? "無" }}</span
     >
     <span class="block"
       >是否為部門管理員:{{
-        (userStore().userEdit.range?.length ?? 0) == 0 ? "否" : "是"
+        userStore.userEdit.range.length == 0 ? "否" : "是"
       }}</span
     >
     <label class="inpLabel w-full">
       <select
-        v-model="userStore().userModify.deptcode"
+        v-model="userStore.userModify.deptcode"
         class="inp w-full"
         :disabled="!rangeValid"
         @change="deptChangeRange"
       >
         <option
-          v-for="unit in Store().postOption.Unit"
+          v-for="unit in Store.postOption.Unit"
           :value="unit.code"
           :key="unit"
         >
@@ -33,29 +31,29 @@
       </select></label
     >
     <div
+      v-if="deptManage"
       class="flex items-center justify-between border-2 my-2 px-2 border-primaryDark rounded bg-white"
     >
       <span
         class="block p-2 font-bold"
         :class="toggleUpdate ? '' : 'opacity-50'"
-        >管理功能</span
+        >編輯管理部門</span
       ><input
         id="toggleSwicthInput"
         class="hidden"
         type="checkbox"
         v-model="toggleUpdate"
-        @change="rangeToggle"
         :disabled="!rangeValid"
       />
       <label for="toggleSwicthInput" class="toggleSwicth"></label>
     </div>
     <div v-if="toggleUpdate" class="flex flex-wrap">
       <label
-        v-for="item of userStore().userRangeAll"
+        v-for="item of userStore.userRangeAll"
         :key="item"
         class="w-full md:w-48 p-2 m-2 border-2 rounded box-border"
         :class="[
-          userStore().userModify.range.some((el) => el === item.code)
+          userStore.userModify.range.some((el) => el === item.code)
             ? 'border-primaryDark bg-secondaryLight/50'
             : 'border-primary ',
           toggleUpdate ? 'hover:border-secondary cursor-pointer' : '',
@@ -63,7 +61,7 @@
       >
         <div class="flex">
           <i
-            v-if="!userStore().userModify.range.some((el) => el === item.code)"
+            v-if="!userStore.userModify.range.some((el) => el === item.code)"
             class="fa-regular fa-circle text-primaryLight text-[32px]"
           ></i>
           <i
@@ -74,7 +72,7 @@
             type="checkbox"
             :disabled="!toggleUpdate"
             :value="item.code"
-            v-model="userStore().userModify.range"
+            v-model="userStore.userModify.range"
             hidden
           />
         </div>
@@ -88,51 +86,58 @@
   </div>
 </template>
 <script setup>
-import { ref, onBeforeMount, watchEffect } from "vue";
-import { userStore, Store } from "../../../store/store";
+import { onBeforeMount, ref } from "vue";
 import { checkRangeValid } from "../../../api/service";
+import { useStore, useUserStore } from "../../../store/store";
+const Store = useStore();
+const userStore = useUserStore();
 const rangeValid = ref(false);
 const toggleUpdate = ref(false);
+const deptManage = ref(false);
+const emit = defineEmits(["checking"]);
+const checking = ref({ pass: true, msg: null });
 
 const deptChangeRange = () => {
-  userStore().userModify.range = [];
-  let userDeptCode = userStore().userModify.deptcode.slice(0, 3);
-  for (let item of userStore().userRangeAll) {
-    if (item.code.slice(0, 3) == userDeptCode) {
-      console.log(item);
-      userStore().userModify.range.push(item.code);
-    }
-  }
-};
-
-const rangeToggle = () => {
-  userStore().userModify.range = [];
-  if (toggleUpdate.value) {
-    for (let i = 0; i < userStore().userEdit.range.length; i++) {
-      userStore().userModify.range[i] = userStore().userEdit.range[i].code;
-    }
-    let userDeptCode = userStore().userModify.deptcode.slice(0, 3);
-    for (let item of userStore().userRangeAll) {
+  userStore.userModify.range = [];
+  if (deptManage.value == true) {
+    let userDeptCode = userStore.userModify.deptcode.slice(0, 3);
+    for (let item of userStore.userRangeAll) {
       if (item.code.slice(0, 3) == userDeptCode) {
-        userStore().userModify.range.push(item.code);
+        console.log(item);
+        userStore.userModify.range.push(item.code);
       }
     }
-  } else {
-    userStore().userModify.range = [];
   }
 };
 
+// const rangeToggle = () => {
+//   // userStore.userModify.range = [];
+//   if (toggleUpdate.value) {
+//     for (let i = 0; i < userStore.userEdit.range.length; i++) {
+//       userStore.userModify.range[i] = userStore.userEdit.range[i].code;
+//     }
+//     let userDeptCode = userStore.userModify.deptcode.slice(0, 3);
+//     for (let item of userStore.userRangeAll) {
+//       if (item.code.slice(0, 3) == userDeptCode) {
+//         userStore.userModify.range.push(item.code);
+//       }
+//     }
+//   } else {
+//     userStore.userModify.range = [];
+//   }
+// };
+
 onBeforeMount(async () => {
-  userStore().userModify.range = [];
-  userStore().userModify.deptcode = userStore().userEdit.deptcode;
-  if ((userStore().userEdit.range?.length ?? 0) == 0) {
-    toggleUpdate.value = false;
-    userStore().userModify.range = [];
+  emit("checking", checking.value);
+  // userStore.userModify.range = [];
+  userStore.userModify.deptcode = userStore.userEdit.deptcode;
+  userStore.userModify.range = userStore.userEdit.range;
+  if (userStore.userEdit.range.length == 0) {
+    deptManage.value = false;
+    userStore.userModify.range = [];
   } else {
-    toggleUpdate.value = true;
-    for (let i = 0; i < userStore().userEdit.range.length; i++) {
-      userStore().userModify.range[i] = userStore().userEdit.range[i];
-    }
+    deptManage.value = true;
+    for (let i = 0; i < userStore.userEdit.range.length; i++) {}
   }
   let res = await checkRangeValid();
   if (res.desc == "successful") {
@@ -141,9 +146,7 @@ onBeforeMount(async () => {
     } else {
       rangeValid.value = false;
     }
-    userStore().userRangeAll = res.resBody.rangeList;
-  } else {
+    userStore.userRangeAll = res.resBody.rangeList;
   }
 });
-watchEffect(() => {});
 </script>

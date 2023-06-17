@@ -7,10 +7,10 @@
         </span>
         <div>
           <p class="text-2xl font-bold text-submit">
-            {{ commonStore().SvcSucess.title }}
+            {{ commonStore.SvcSucess.title }}
           </p>
           <p class="rounded p-2 text-submit/70 font-bold">
-            {{ commonStore().SvcSucess.msg }}
+            {{ commonStore.SvcSucess.msg }}
           </p>
         </div>
       </div>
@@ -21,20 +21,23 @@
   </div>
 </template>
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from "vue";
-import { commonStore } from "../../store/commonStore";
-import { Store } from "../../store/store";
+import { onBeforeUnmount, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useCommonStore } from "../../store/commonStore";
+import { useStore } from "../../store/store";
+const commonStore = useCommonStore();
+const Store = useStore();
+
 const router = useRouter();
 let time;
 let autoReturn = () => {
   time = setTimeout(() => {
-    if (Store().routerPush) {
-      router.push(Store().routerPush);
+    if (Store.routerPush) {
+      router.push(Store.routerPush);
     } else {
       router.go(-1);
     }
-    delete Store().routerPush;
+    delete Store.routerPush;
   }, 1000);
 };
 onMounted(() => {

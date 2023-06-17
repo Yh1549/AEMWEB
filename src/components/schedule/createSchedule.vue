@@ -13,16 +13,13 @@
         >
         <label class="inpLabel col-span-2">
           <select
-            name="jobName"
-            id="jobName"
             class="inp w-full"
-            data-valid-option="notNull"
+            v-verify:[jobNameValidArg]="scheduleCheckingList.jobName"
             v-model="jobName"
-            @change="InputValidation(Store().scheduleCheckList, $event)"
           >
             <option value="" disabled>請選擇您所發布的排程</option>
             <option
-              v-for="job in Store().jobList"
+              v-for="job in Store.jobList"
               :key="job.job"
               :value="job.job"
             >
@@ -55,15 +52,16 @@
             <div class="text-cancel">※</div>
           </div></span
         >
-        <label class="inpLabel col-span-2">
+        <label class="inpLabel">
           <input
             type="text"
-            name="triggerName"
-            data-valid-option="notNull,notCn"
-            class="w-full inp block col-span-2"
+            class="w-full inp"
+            v-verify:[triggerNameValidArg]="scheduleCheckingList.triggerName"
             v-model="triggerName"
-            @keyup="InputValidation(Store().scheduleCheckList, $event)"
         /></label>
+        <inputErrorMsg v-if="scheduleCheckingList.triggerName.pass == false"
+          >{{ scheduleCheckingList.triggerName.msg }}
+        </inputErrorMsg>
       </li>
       <li class="py-2 md:py-4 grid md:grid-cols-3 gap-x-8">
         <span class="self-center pb-2 md:pb-0">
@@ -76,12 +74,9 @@
         >
         <label class="inpLabel col-span-2">
           <select
-            name="triggerGroup"
-            id="triggerGroup"
-            data-valid-option="notNull"
             class="inp w-full"
+            v-verify:[triggerGroupValidArg]="scheduleCheckingList.triggerGroup"
             v-model="triggerGroup"
-            @change="InputValidation(Store().scheduleCheckList, $event)"
           >
             <option disabled value="">請選擇您所發布的群組</option>
             <option value="post">公告</option>
@@ -102,12 +97,10 @@
         <label class="inpLabel col-span-2">
           <input
             type="text"
-            name="cronTime"
-            data-valid-option="notNull,cronTimeLastWord"
             placeholder="* /50 * * * * ?"
             class="w-full inp block"
+            v-verify:[cronTimeValidArg]="scheduleCheckingList.cronTime"
             v-model="cronTime"
-            @keyup="InputValidation(Store().scheduleCheckList, $event)"
         /></label>
       </li>
       <li class="py-2 md:py-4 grid md:grid-cols-3 gap-x-8">
@@ -121,12 +114,9 @@
         >
         <label class="inpLabel col-span-2">
           <select
-            name="triggerFlag"
-            id="triggerFlag"
-            data-valid-option="notNull"
             class="inp w-full"
+            v-verify:[triggerFlagValidArg]="scheduleCheckingList.triggerFlag"
             v-model="triggerFlag"
-            @change="InputValidation(Store().scheduleCheckList, $event)"
           >
             <option disabled value="">請選擇您所發布的狀態</option>
             <option value="1">啟用</option>
@@ -156,13 +146,14 @@
   </div>
 </template>
 <script setup>
-import { Store } from "../../store/store";
 import { ref } from "vue";
-import { InputValidation } from "../../formValidation/inputCase";
 import { CreateSchedule } from "../../api/service";
-import { commonStore } from "../../store/commonStore";
 import router from "../../router/router";
-const errorMsg = ref("");
+import { useCommonStore } from "../../store/commonStore";
+import { useStore } from "../../store/store";
+import inputErrorMsg from "../inputErrorMsg.vue";
+const Store = useStore();
+const commonStore = useCommonStore();
 const cronTime = ref(""),
   jobData = ref(""),
   jobName = ref(""),
@@ -170,33 +161,34 @@ const cronTime = ref(""),
   triggerFlag = ref(""),
   triggerGroup = ref(""),
   triggerName = ref("");
-const addTrigger = () => {
-  let pass = false;
-  for (let value in Store().scheduleCheckList) {
-    if (Store().scheduleCheckList[value] != null) {
-      for (let i of Store().scheduleCheckList[value]) {
-        if (i.result === false) {
-          pass = false;
-          errorMsg.value = i.msg;
-          wrongInfo(value);
-          break;
-        } else {
-          pass = true;
-        }
-      }
-      if (!pass) {
-        break;
-      }
-    } else {
-      pass = false;
-      errorMsg.value = "不可為空";
-      wrongInfo(value);
-      break;
+
+const jobNameValidArg = ["notNull"];
+const triggerNameValidArg = ["notNull", "notCn"];
+const triggerGroupValidArg = ["notNull"];
+const triggerFlagValidArg = ["notNull"];
+const cronTimeValidArg = ["notNull", "cronTimeLastWord"];
+
+const scheduleCheckingList = ref({
+  jobName: { pass: null, msg: null },
+  triggerName: { pass: null, msg: null },
+  triggerGroup: { pass: null, msg: null },
+  cronTime: { pass: null, msg: null },
+  triggerFlag: { pass: null, msg: null },
+});
+
+const validCheck = () => {
+  for (let item in scheduleCheckingList.value) {
+    if (scheduleCheckingList.value[item].pass != true) {
+      return false;
     }
   }
-  if (pass === true) {
-    Store().alertShow = true;
-    Store().alertObj = {
+  return true;
+};
+
+const addTrigger = () => {
+  if (validCheck()) {
+    Store.alertShow = true;
+    Store.alertObj = {
       msg: "確定新增？",
       func: async (e) => {
         if (e.target.value === "confirm") {
@@ -214,7 +206,7 @@ const addTrigger = () => {
               name: "SvcSucess",
             });
           } else {
-            commonStore().SvcFail.msg = res.desc;
+            commonStore.SvcFail.msg = res.desc;
             router.push({
               name: "SvcFail",
             });
@@ -222,23 +214,12 @@ const addTrigger = () => {
         }
       },
     };
+  } else {
+    Store.alertShow = true;
+    Store.alertObj = {
+      msg: "請重新確認資料",
+      func: (e) => {},
+    };
   }
-};
-const wrongInfo = (name) => {
-  let msgObj = {
-    jobName: "jobName",
-    triggerName: "排程名稱",
-    triggerGroup: "排程群組",
-    cronTime: "觸發時間",
-    triggerFlag: "排程狀態",
-  };
-  for (let i = 0; i < Object.keys(msgObj).length; i++) {
-    if (Object.keys(msgObj)[i] == name) {
-      Store().alertObj.msg = Object.values(msgObj)[i] + " " + errorMsg.value;
-      break;
-    }
-  }
-  Store().alertShow = true;
-  Store().alertObj.func = (e) => {};
 };
 </script>

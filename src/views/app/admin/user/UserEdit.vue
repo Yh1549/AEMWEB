@@ -3,11 +3,11 @@
     <div class="flex justify-between">
       <p class="py-2 mr-2">
         使用者<span class="font-bold btn shadow-none mx-1 p-1"
-          ><i class="fa-solid fa-user"></i>{{ userStore().userEdit.name }}</span
+          ><i class="fa-solid fa-user"></i>{{ userStore.userEdit.name }}</span
         >
       </p>
       <button
-        v-if="Store().getSvcAuth('DeleteUser')"
+        v-if="Store.getSvcAuth('DeleteUser')"
         class="btn btnClick bg-cancel mx-auto md:mx-4"
         @click="deleteUser()"
       >
@@ -21,10 +21,10 @@
           <span class="mr-2">
             日期:
             <span class="p-1">{{
-              userStore().userEdit.time == null
+              userStore.userEdit.time == null
                 ? "無登入紀錄"
-                : Store().dateReform(
-                    Store().timeReform(userStore().userEdit.time)[0],
+                : Store.dateReform(
+                    Store.timeReform(userStore.userEdit.time)[0],
                     ".",
                     "/"
                   )
@@ -33,9 +33,9 @@
           <span class="py-2 mr-2"
             >時間:
             <span class="p-1">{{
-              userStore().userEdit.time == null
+              userStore.userEdit.time == null
                 ? "無登入紀錄"
-                : Store().timeReform(userStore().userEdit.time)[1]
+                : Store.timeReform(userStore.userEdit.time)[1]
             }}</span></span
           >
         </div>
@@ -44,9 +44,7 @@
         <span>帳號註冊時間:</span>
         <div class="inpLabel">
           <span class="py-2 mr-2">
-            <span class="p-1">{{
-              userStore().userEdit.registertime
-            }}</span></span
+            <span class="p-1">{{ userStore.userEdit.registertime }}</span></span
           >
         </div>
       </div>
@@ -55,7 +53,7 @@
         <div class="inpLabel">
           <span class="py-2 mr-2">
             <span class="p-1">{{
-              userStore().userEdit.lastmodifytime
+              userStore.userEdit.lastmodifytime
             }}</span></span
           >
         </div>
@@ -77,6 +75,12 @@
     </router-link>
     <router-link
       class="UserEditTab"
+      active-class="border-b-4 text-white bg-gray-900/5"
+      :to="{ name: 'userSystem' }"
+      >系統
+    </router-link>
+    <router-link
+      class="UserEditTab"
       active-class="border-b-4 text-white bg-gray-900/5 text-white"
       :to="{ name: 'userPostFlow' }"
       >建檔流程</router-link
@@ -92,36 +96,38 @@
 </template>
 
 <script setup>
+import { onBeforeMount, ref } from "vue";
 import { useRoute } from "vue-router";
-import { userStore, Store } from "../../../../store/store";
-import { onBeforeMount, ref, nextTick } from "vue";
 import apiRequest from "../../../../api/apiRequest";
-import router from "../../../../router/router";
 import { SelectAboutUser, SelectDept } from "../../../../api/service";
+import router from "../../../../router/router";
+import { useStore, useUserStore } from "../../../../store/store";
+const Store = useStore();
+const userStore = useUserStore();
 const route = useRoute();
 const user = ref({});
 
-const users = userStore().List;
+const users = userStore.List;
 
 const { id } = route.params;
 const targetUser = users.filter((u) => u.userId === id);
 user.value = targetUser.shift();
 
 const deleteUser = () => {
-  Store().alertShow = true;
-  Store().alertObj = {
-    msg: `注意！確定要刪除「${userStore().userEdit.name}」嗎？`,
+  Store.alertShow = true;
+  Store.alertObj = {
+    msg: `注意！確定要刪除「${userStore.userEdit.name}」嗎？`,
     func: async (e) => {
       if (e.target.value === "confirm") {
         await apiRequest
-          .post("DeleteUser", { empid: userStore().userEdit.empid })
+          .post("DeleteUser", { empid: userStore.userEdit.empid })
           .then((res) => {
             if (res.desc == "successful") {
               router.push({
                 name: "SvcSucess",
               });
             } else {
-              commonStore().SvcFail.msg = res.desc;
+              commonStore.SvcFail.msg = res.desc;
               router.push({
                 name: "SvcFail",
               });
@@ -133,7 +139,7 @@ const deleteUser = () => {
   };
 };
 onBeforeMount(async () => {
-  userStore().$reset();
+  userStore.$reset;
 
   await SelectDept();
   let res = await SelectAboutUser(route.params.userId);
@@ -144,27 +150,16 @@ onBeforeMount(async () => {
       authorityNew.push(svc.svcname);
     }
     userEdit.authority = authorityNew;
-    userStore().userEdit = userEdit;
+    userStore.userEdit = userEdit;
   } else {
-    Store().alertShow = true;
-    Store().alertObj = {
+    Store.alertShow = true;
+    Store.alertObj = {
       msg: res.desc,
       func: (e) => {
         router.push({ name: "Lobby" });
       },
     };
   }
-
-  // await FindAllCaseFlowAndDetail();
-  // if (
-  //   userStore().userRoleList == null ||
-  //   userStore().userRoleList.length == 0
-  // ) {
-  //   let userRoleListRes = await FindEmpCaseRole(route.params.userId);
-  //   if (userRoleListRes.desc === "successful") {
-  //     userStore().userRoleList = userRoleListRes.resBody.userRoleList;
-  //   }
-  // }
 });
 </script>
 <style scoped>

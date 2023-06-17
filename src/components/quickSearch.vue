@@ -21,9 +21,12 @@
   </div>
 </template>
 <script setup>
-import { Store, postStore, userStore } from "../store/store";
 import { ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import { usePostStore, useStore, useUserStore } from "../store/store";
+const Store = useStore;
+const userStore = useUserStore;
+const postStore = usePostStore;
 const route = useRoute();
 
 const quickSearch = ref("");
@@ -32,40 +35,40 @@ const noResult = ref(false);
 const search = () => {
   if (quickSearch.value == "") {
     noResult.value = false;
-    if (route.path == "/UserManage" && Store().tabCurrent == "all") {
-      Store().pageRender = userStore().List;
+    if (route.path == "/UserManage" && Store.tabCurrent == "all") {
+      Store.pageRender = userStore.List;
     } else if (
-      (route.path == "/postPersonal" && Store().tabCurrent == "all") ||
+      (route.path == "/postPersonal" && Store.tabCurrent == "all") ||
       route.path == "/postAll"
     ) {
-      Store().pageRender = postStore().List;
+      Store.pageRender = postStore.List;
     } else {
-      Store().pageRender = Store().tabList;
+      Store.pageRender = Store.tabList;
     }
   } else {
-    if (route.path == "/UserManage" && Store().tabCurrent == "all") {
-      Store().pageRender = userStore().List.filter((i) =>
+    if (route.path == "/UserManage" && Store.tabCurrent == "all") {
+      Store.pageRender = userStore.List.filter((i) =>
         [i.empid, i.name].some((text) => text.includes(quickSearch.value))
       );
       noResult.value = false;
-    } else if (route.path == "/UserManage" && Store().tabCurrent !== "all") {
-      Store().pageRender = Store().tabList.filter((i) =>
+    } else if (route.path == "/UserManage" && Store.tabCurrent !== "all") {
+      Store.pageRender = Store.tabList.filter((i) =>
         [i.empid, i.name].some((text) => text.includes(quickSearch.value))
       );
       noResult.value = false;
     } else if (
-      (route.path == "/postPersonal" && Store().tabCurrent == "all") ||
+      (route.path == "/postPersonal" && Store.tabCurrent == "all") ||
       route.path == "/postAll"
     ) {
-      Store().pageRender = postStore().List.filter((i) =>
+      Store.pageRender = postStore.List.filter((i) =>
         // [i.postDate, i.title, i.status, i.tag, i.relSys, i.name]
         [i.title, i.status, i.relSys].some((text) =>
           text.includes(quickSearch.value)
         )
       );
       noResult.value = false;
-    } else if (route.path == "/postPersonal" && Store().tabCurrent !== "all") {
-      Store().pageRender = Store().tabList.filter((i) =>
+    } else if (route.path == "/postPersonal" && Store.tabCurrent !== "all") {
+      Store.pageRender = Store.tabList.filter((i) =>
         // [i.postDate, i.title, i.status, i.tag, i.relSys, i.name]
         [i.title, i.status, i.relSys].some((text) =>
           text.includes(quickSearch.value)
@@ -73,7 +76,7 @@ const search = () => {
       );
       noResult.value = false;
     }
-    if (Store().pageRender.length == 0) {
+    if (Store.pageRender.length == 0) {
       noResult.value = true;
     }
   }

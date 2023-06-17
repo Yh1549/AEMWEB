@@ -1,26 +1,26 @@
 <template>
   <table class="w-full">
     <thead>
-      <tr class="border-b-2 border-black">
+      <tr class="border-b-2 border-black ListTr">
         <slot name="th"></slot>
       </tr>
     </thead>
-    <tbody>
+    <tbody class="ListTd">
       <slot name="td"></slot>
     </tbody>
   </table>
 </template>
 <script setup></script>
 <style>
-th {
+.ListTr th {
   text-align: start;
 }
-th,
-td {
+.ListTr th,
+.ListTd td {
   padding: 0.5rem;
 }
 
-tbody tr:nth-child(even) {
+.ListTd tr:nth-child(even) {
   background-color: #f2f2f2;
 }
 </style>

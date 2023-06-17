@@ -1,7 +1,7 @@
 <template>
   <div class="w-full">
     <table class="mx-auto w-full">
-      <thead>
+      <thead class="border-b-2">
         <tr>
           <th>名稱</th>
           <th>代號</th>
@@ -23,48 +23,47 @@
   </div>
 </template>
 <script setup>
-import { userStore } from "../../store/store";
-import { ref, onBeforeMount, watch, computed } from "vue";
+import { computed, onBeforeMount, ref, watch } from "vue";
 import apiRequest from "../../api/apiRequest";
-
-const prop = defineProps(["currentStore"]);
+const prop = defineProps(["set"]);
+const emit = defineEmits(["authoritySet"]);
+const svcRoleSet = ref([]);
 const setPick = ref([]);
 
 const getSets = computed(() => {
   let array = [];
-
-  for (let name of userStore().svcRoleSet) {
+  for (let name of svcRoleSet.value) {
     if (name.userset != "default") {
       array.push(name);
     }
   }
-
   return array;
 });
 watch(setPick, () => {
   if (setPick.value) {
     if (setPick.value.length == 0) {
-      prop.currentStore.authority = [];
+      prop.set.authority = [];
+      prop.set.sets = [];
     } else {
       let authArray = [];
       let authSet;
       for (let pick of setPick.value) {
-        for (let item of userStore().svcRoleSet) {
+        for (let item of svcRoleSet.value) {
           if (pick == item.userset || item.userset == "default") {
             authArray = authArray.concat(item.authority);
           }
         }
       }
       authSet = new Set(authArray);
-      prop.currentStore.sets = setPick.value;
-      prop.currentStore.authority = Array.from(authSet);
+      prop.set.sets = setPick.value;
+      prop.set.authority = Array.from(authSet);
     }
+    emit("authoritySet", prop.set);
   }
 });
-
 onBeforeMount(async () => {
   await apiRequest.post("FindUserDefaultSet", {}).then((res) => {
-    userStore().svcRoleSet = res.resBody.defaultSetList;
+    svcRoleSet.value = res.resBody.defaultSetList;
   });
 });
 </script>

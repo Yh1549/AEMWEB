@@ -1,7 +1,7 @@
 <template>
   <button
     class="border-2 border-primaryDark w-10 h-10 rounded hover:bg-secondaryLight"
-    v-if="Store().getSvcAuth(currentSvc.update)"
+    v-if="Store.getSvcAuth(currentSvc.update)"
     @click="settingToggle = !settingToggle"
   >
     <span class="text-[25px] text-primaryDark">
@@ -36,7 +36,7 @@
       <button
         v-if="
           route.params.category == 'post' &&
-          Store().getSvcAuth(currentSvc.delete)
+          useStore().getSvcAuth(currentSvc.delete)
         "
         class="block bg-cancel rounded p-2"
         :class="
@@ -49,11 +49,11 @@
         </span>
       </button>
     </div>
-    <div class="p-2 flex" v-else-if="Store().detailinfo.status == 'hide'">
+    <div class="p-2 flex" v-else-if="props.detailInfo.status == 'hide'">
       <button
         v-if="
           route.params.category == 'post' &&
-          Store().getSvcAuth(currentSvc.delete)
+          useStore().getSvcAuth(currentSvc.delete)
         "
         class="block rounded p-2 cursor-pointer"
         :class="hasCaseFlow ? 'bg-submit' : 'pointer-events-none bg-gray-400'"
@@ -70,13 +70,14 @@
   </div>
 </template>
 <script setup>
-import { ref, onBeforeMount, computed } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import { Store } from "../../store/store";
+import { computed, onBeforeMount, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import apiRequest from "../../api/apiRequest";
+import { useStore } from "../../store/store";
+const Store = useStore();
 const route = useRoute();
 const router = useRouter();
-const props = defineProps(["hasCaseFlow"]);
+const props = defineProps(["hasCaseFlow", "detailInfo"]);
 const settingToggle = ref(false);
 const currentSvc = ref({
   update: "",
@@ -84,18 +85,19 @@ const currentSvc = ref({
 });
 
 const update = () => {
-  Store().detailUpdateToggle = true;
+  Store.detailUpdateToggle = true;
   settingToggle.value = false;
 };
 const getDetailStatusValid = computed(() => {
   if (route.params.category == "post") {
-    return Store().detailinfo.status == "online";
+    return props.detailInfo.status == "online";
   } else {
-    if (Store().detailinfo.status != "checking") {
+    if (props.detailInfo.status != "checking") {
       return true;
     }
   }
 });
+
 onBeforeMount(async () => {
   if (route.params.category == "post") {
     currentSvc.value.update = "UpdatePost";
@@ -107,16 +109,16 @@ onBeforeMount(async () => {
 });
 
 const deletePost = () => {
-  Store().alertShow = true;
-  Store().alertObj = {
+  Store.alertShow = true;
+  Store.alertObj = {
     msg: "即將送出隱藏公告審核，確定要隱藏此公告?",
     func: (e) => {
       if (e.target.value == "confirm") {
-        Store().loadingSpinner = true;
+        Store.loadingSpinner = true;
         apiRequest
           .post("DeletePost", { uuid: route.params.uuid, status: "1" })
           .then((res) => {
-            Store().loadingSpinner = false;
+            Store.loadingSpinner = false;
             settingToggle.value = false;
             if (res.desc == "successful") {
               router.push({ name: "SvcSucess" });
@@ -130,17 +132,17 @@ const deletePost = () => {
 };
 
 const recoverPost = () => {
-  Store().alertShow = true;
-  Store().alertObj = {
+  Store.alertShow = true;
+  Store.alertObj = {
     msg: "即將送出重新上架審核，確定要重新上架此公告?",
     func: (e) => {
       if (e.target.value == "confirm") {
-        Store().loadingSpinner = true;
+        Store.loadingSpinner = true;
         apiRequest
           // recover跟delete共用一隻API: status=1是將公告狀態調整為隱藏、0是恢復
           .post("DeletePost", { uuid: route.params.uuid, status: "0" })
           .then((res) => {
-            Store().loadingSpinner = false;
+            Store.loadingSpinner = false;
             settingToggle.value = false;
             if (res.desc == "successful") {
               router.push({ name: "SvcSucess" });

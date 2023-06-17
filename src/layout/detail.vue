@@ -1,57 +1,45 @@
 <template>
-  <loadSpinner>
-    <template #title>載入中</template>
-  </loadSpinner>
-  <div v-if="!Store().loadingSpinner">
+  <div>
     <div class="p-2 w-full flex justify-between relative">
-      <detailStatus></detailStatus>
+      <detailStatus :detailInfo="detailInfo"></detailStatus>
       <DetailModify
-        v-if="Store().detailUpdateToggle == false"
+        v-if="Store.detailUpdateToggle == false"
         :hasCaseFlow="hasCaseFlow"
+        :detailInfo="detailInfo"
       />
-      <button
-        v-else
-        class="btn"
-        @click="
-          adStore().$reset();
-          postStore().$reset();
-          Store().detailUpdateToggle = false;
-        "
-      >
-        返回
-      </button>
+      <button v-else class="btn" @click="returnDetail">返回</button>
     </div>
-    <div v-if="!Store().detailUpdateToggle">
-      <detailContent />
-      <caseTable :uuid="Store().detailinfo.uuid"></caseTable>
+    <div v-if="!Store.detailUpdateToggle">
+      <detailContent :detailInfo="detailInfo" />
+      <caseTable :uuid="detailInfo.uuid"></caseTable>
     </div>
     <div v-else>
-      <component :is="getUpdatePage"></component>
+      <component :is="getUpdatePage" :data="detailInfo"></component>
     </div>
   </div>
 </template>
 <script setup>
-import { Store, adStore, postStore } from "../store/store";
+import { computed, markRaw, onBeforeMount, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { onBeforeMount, ref, markRaw, computed } from "vue";
-import {
-  findPostTag,
-  findSysList,
-  FindOnePost,
-  CheckCheckingCase,
-} from "../api/service";
 import apiRequest from "../api/apiRequest";
-import detailContent from "../components/detail/detailContent.vue";
-import detailStatus from "../components/detail/detailStatus.vue";
-import caseTable from "../components/caseTable.vue";
-import DetailModify from "../components/detail/detailModify.vue";
-import postUpdate from "../components/post/PostUpdate.vue";
+import { FindOnePost, findPostTag, findSysList } from "../api/service";
 import adUpdate from "../components/ad/adUpdate.vue";
+import caseTable from "../components/caseTable.vue";
+import detailContent from "../components/detail/detailContent.vue";
+import DetailModify from "../components/detail/detailModify.vue";
+import detailStatus from "../components/detail/detailStatus.vue";
+import postUpdate from "../components/post/PostUpdate.vue";
+import { useAdStore, usePostStore, useStore } from "../store/store";
+const Store = useStore();
+const adStore = useAdStore();
+const postStore = usePostStore();
 
 const route = useRoute();
 const router = useRouter();
 const hasCaseFlow = ref(false);
-
+const detailInfo = ref({});
+const adBlockList = ref();
+//
 const getUpdatePage = computed(() => {
   if (route.params.category == "post") {
     return markRaw(postUpdate);
@@ -60,20 +48,36 @@ const getUpdatePage = computed(() => {
   }
 });
 
+const checkUserCaseFlow = async () => {
+  let res = await apiRequest.post("CheckUserCaseFlow", {
+    id: detailInfo.value.uuid,
+  });
+  if (res.desc == "successful") {
+    hasCaseFlow.value = true;
+  }
+};
+
+const findSystemBlock = async () => {
+  let res = await apiRequest.post("FindSystemBlock", {
+    system: detailInfo.value.system,
+  });
+  if (res.desc == "successful") {
+    adBlockList.value = res.resBody.blockModelList;
+  }
+};
+
 onBeforeMount(async () => {
-  Store().detailUpdateToggle = false;
-  Store().loadingSpinner = true;
-  let detailInfo = {};
+  useStore().detailUpdateToggle = false;
   if (route.params.category == "post") {
     const res = await FindOnePost(route.params.uuid);
     if (res.desc == "successful") {
-      Store().loadingSpinner = false;
-      detailInfo = res.resBody;
-      await findPostTag(detailInfo.relSys);
+      detailInfo.value = res.resBody;
+      await findPostTag(detailInfo.value.relSys);
+      checkUserCaseFlow();
+      findSystemBlock();
     } else {
-      Store().loadingSpinner = false;
-      Store().alertShow = true;
-      Store().alertObj = {
+      Store.alertShow = true;
+      Store.alertObj = {
         msg: "查無資料",
         func: (e) => {
           router.go(-1);
@@ -85,52 +89,22 @@ onBeforeMount(async () => {
       .post("FindOneAd", { uuid: route.params.uuid })
       .then(async (res) => {
         if (res.desc == "successful") {
-          Store().loadingSpinner = false;
-          detailInfo = res.resBody;
-          apiRequest
-            .post("FindSystemBlock", { system: detailInfo.system })
-            .then((res) => {
-              if (res.desc == "successful") {
-                adStore().adBlockList = res.resBody.blockModelList;
-              }
-            })
-            .catch();
+          detailInfo.value = res.resBody;
+          checkUserCaseFlow();
         } else {
-          Store().loadingSpinner = false;
-          Store().alertShow = true;
-          Store().alertObj = {
+          Store.alertShow = true;
+          Store.alertObj = {
             msg: "查無資料",
             func: (e) => {},
           };
         }
       });
   }
-  Store().detailinfo = detailInfo;
-  // const checkRes = await CheckCheckingCase(Store().detailinfo.refId);
-  // Store().noCheckingCase = checkRes.code == "0" ? true : false;
-  await apiRequest
-    .post("CheckUserCaseFlow", {
-      id: Store().detailinfo.uuid,
-    })
-    .then((res) => {
-      if (res.desc == "successful") {
-        hasCaseFlow.value = true;
-      } else {
-      }
-    });
   findSysList();
 });
+const returnDetail = () => {
+  adStore.$reset();
+  postStore.$reset();
+  Store.detailUpdateToggle = false;
+};
 </script>
-<style scoped>
-.postText {
-  @apply font-bold my-2;
-}
-.postText span {
-  @apply rounded bg-white w-full block p-2 shadow-md mb-3;
-}
-.sign {
-  @apply px-3 absolute text-5xl text-cancel/30 border-cancel/30 font-bold w-[90%] h-fit border-4 border-dashed my-4;
-  text-align: justify;
-  text-align-last: justify;
-}
-</style>

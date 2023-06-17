@@ -1,20 +1,25 @@
 import { createRouter, createWebHashHistory } from "vue-router";
-import { Store, adStore, postStore } from "../store/store";
-import {
-  FindAllCaseFlow, findSysList, FindCaseFlowAndDetail, FindScheduler, FindOnePost, findPostTag
-} from "../api/service";
 import apiRequest from "../api/apiRequest";
+import {
+  FindAllCaseFlow,
+  FindAllMsgInfo,
+  FindCaseFlowAndDetail,
+  FindScheduler,
+  findSysList,
+} from "../api/service";
 import authLayout from "../layout/authLayout.vue";
-import dashBoardLayout from "../layout/dashBoardLayout.vue"
+import dashBoardLayout from "../layout/dashBoardLayout.vue";
+import { useAdStore, usePostStore, useStore } from "../store/store";
+
 export default createRouter({
   history: createWebHashHistory(),
   routes: [
     {
       path: "/",
-      redirect: { name: 'Login' },
+      redirect: { name: "Login" },
     },
     {
-      path: '/auth',
+      path: "/auth",
       component: authLayout,
       children: [
         {
@@ -26,7 +31,7 @@ export default createRouter({
             title: "登入",
           },
           beforeEnter: (to, form, next) => {
-            if (sessionStorage.getItem('token')) {
+            if (sessionStorage.getItem("token")) {
               next({
                 path: "/Lobby",
               });
@@ -56,7 +61,7 @@ export default createRouter({
           meta: {
             requiresAuth: false,
             pageClass: "common",
-            title: '公告管理系統'
+            title: "公告管理系統",
           },
         },
         // Svc成功
@@ -86,7 +91,7 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "approve",
-            title: '審核案件'
+            title: "審核案件",
           },
         },
         {
@@ -96,7 +101,7 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "approve",
-            title: '審核案件細節'
+            title: "審核案件細節",
           },
         },
         {
@@ -106,12 +111,12 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "approve",
-            title: '案件總覽'
+            title: "案件總覽",
           },
         },
         {
-          path: '/detail/:uuid/category/:category',
-          name: 'detail',
+          path: "/detail/:uuid/category/:category",
+          name: "detail",
           component: () => import("../layout/detail.vue"),
         },
         // 新增公告
@@ -123,11 +128,11 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "post",
-            title: '新增公告'
+            title: "新增公告",
           },
           beforeEnter: async (to, from, next) => {
-            postStore().$reset();
-            Store().$reset()
+            usePostStore().$reset;
+            useStore().$reset;
             await findSysList();
             next();
           },
@@ -140,11 +145,11 @@ export default createRouter({
           meta: {
             requiresAuth: false,
             pageClass: "post",
-            title: '公告列表'
+            title: "公告列表",
           },
           beforeEnter: (to, from, next) => {
             if (from.params.category != "post") {
-              Store().searchMemo = {
+              useStore().searchMemo = {
                 personalPost: false,
                 keyword: undefined,
                 system: undefined,
@@ -152,8 +157,8 @@ export default createRouter({
                 endTime: undefined,
               };
             }
-            next()
-          }
+            next();
+          },
         },
         // 所有廣告
         {
@@ -163,18 +168,18 @@ export default createRouter({
           meta: {
             requiresAuth: false,
             pageClass: "advertise",
-            title: '廣告列表'
+            title: "廣告列表",
           },
           beforeEnter: (to, from, next) => {
             if (from.params.category != "ad") {
-              Store().adBlockMemo = {
+              useStore().adBlockMemo = {
                 system: null,
-                block: null
+                block: null,
               };
-              adStore().List = []
+              useAdStore().List = [];
             }
-            next()
-          }
+            next();
+          },
         },
         // 新增廣告
         {
@@ -184,7 +189,7 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "advertise",
-            title: '新增廣告'
+            title: "新增廣告",
           },
         },
         // 廣告排程
@@ -195,7 +200,7 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "advertise",
-            title: '廣告排序'
+            title: "廣告排序",
           },
         },
         // 廣告選項
@@ -206,7 +211,7 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "advertise",
-            title: '廣告選項'
+            title: "廣告選項",
           },
         },
         // *** admin權限管理 ***
@@ -218,20 +223,26 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "admin",
-            title: '錯誤代碼'
+            title: "錯誤代碼",
           },
           beforeEnter: async (ro, from, next) => {
-            await apiRequest.post('FindSysMsg', {}).then((res) => { Store().sysMsg = res.resBody.sysMsgList }).catch((e) => { });
+            await apiRequest
+              .post("FindSysMsg", {})
+              .then((res) => {
+                useStore().sysMsg = res.resBody.sysMsgList;
+              })
+              .catch((e) => {});
             next();
-          }
-        }, {
-          path: '/errorCodeNew',
-          name: 'errorCodeNew',
-          component: () => import('../views/app/admin/errorCodeNew.vue'),
+          },
+        },
+        {
+          path: "/errorCodeNew",
+          name: "errorCodeNew",
+          component: () => import("../views/app/admin/errorCodeNew.vue"),
           meta: {
             requiresAuth: true,
             pageClass: "admin",
-            title: '新增錯誤代碼'
+            title: "新增錯誤代碼",
           },
         },
         // 使用者管理
@@ -242,7 +253,7 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "admin",
-            title: '使用者管理'
+            title: "使用者管理",
           },
         },
         // 新增使用者
@@ -253,7 +264,7 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "admin",
-            title: '新增使用者'
+            title: "新增使用者",
           },
         },
         // 編輯使用者
@@ -265,31 +276,42 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "admin",
-            title: '編輯使用者'
+            title: "編輯使用者",
           },
           children: [
             // 編輯使用者/基本資料
             {
               path: "userBasic",
               name: "userBasic",
-              component: () => import("../views/app/admin/user/userEdit/userBasic.vue"),
+              component: () =>
+                import("../views/app/admin/user/userEdit/userBasic.vue"),
             },
             // 編輯使用者/權限
             {
               path: "userAuth",
               name: "userAuth",
-              component: () => import("../views/app/admin/user/userEdit/userAuth.vue"),
+              component: () =>
+                import("../views/app/admin/user/userEdit/userAuth.vue"),
+            },
+            // 編輯使用者/系統
+            {
+              path: "userSystem",
+              name: "userSystem",
+              component: () =>
+                import("../views/app/admin/user/userEdit/userSystem.vue"),
             },
             // 編輯使用者/審核
             {
               path: "userPostFlow",
               name: "userPostFlow",
-              component: () => import("../views/app/admin/user/userEdit/userPostFlow.vue"),
+              component: () =>
+                import("../views/app/admin/user/userEdit/userPostFlow.vue"),
             },
             {
               path: "userCaseRole",
               name: "userCaseRole",
-              component: () => import("../views/app/admin/user/userEdit/userCaseRole.vue"),
+              component: () =>
+                import("../views/app/admin/user/userEdit/userCaseRole.vue"),
             },
           ],
         },
@@ -302,11 +324,11 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "admin",
-            title: '審核流程管理'
+            title: "審核流程管理",
           },
           beforeEnter: async (to, form, next) => {
-            await FindAllCaseFlow()
-            findSysList()
+            await FindAllCaseFlow();
+            findSysList();
             next();
           },
         },
@@ -318,10 +340,10 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "admin",
-            title: '審核流程細節'
+            title: "審核流程細節",
           },
           beforeEnter: (to, form, next) => {
-            FindCaseFlowAndDetail(to.params.id)
+            FindCaseFlowAndDetail(to.params.id);
             next();
           },
         },
@@ -333,10 +355,10 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "admin",
-            title: '新增審核流程'
+            title: "新增審核流程",
           },
           beforeEnter: (to, form, next) => {
-            FindAllCaseFlow()
+            FindAllCaseFlow();
             next();
           },
         },
@@ -359,7 +381,7 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "admin",
-            title: '系統選項管理'
+            title: "系統選項管理",
           },
         },
         {
@@ -369,10 +391,24 @@ export default createRouter({
           meta: {
             requiresAuth: true,
             pageClass: "admin",
-            title: '作業排程管理'
+            title: "作業排程管理",
           },
           beforeEnter: async (to, from, next) => {
             await FindScheduler();
+            next();
+          },
+        },
+        {
+          path: "/msgInfoManage",
+          name: "msgInfoManage",
+          component: () => import("../views/app/admin/msgInfoManage.vue"),
+          meta: {
+            requiresAuth: true,
+            pageClass: "admin",
+            title: "訊息管理",
+          },
+          beforeEnter: async (to, from, next) => {
+            await FindAllMsgInfo();
             next();
           },
         },
@@ -411,7 +447,6 @@ export default createRouter({
         },
       ],
     },
-
   ],
 });
 

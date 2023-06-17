@@ -1,7 +1,7 @@
 import axios from "axios";
-import { Store } from "../store/store";
-import { commonStore } from "../store/commonStore";
 import router from "../router/router.js";
+import { useCommonStore } from "../store/commonStore";
+import { useStore } from "../store/store";
 export const apiRequest = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
   timeout: 10000,
@@ -12,7 +12,6 @@ export const apiRequest = axios.create({
 // 添加請求攔截器  global
 apiRequest.interceptors.request.use(
   (config) => {
-    config.url += ".json";
     config.headers["Authorization"] =
       "Bearer " + sessionStorage.getItem("token");
     return config;
@@ -25,12 +24,12 @@ apiRequest.interceptors.request.use(
 apiRequest.interceptors.response.use(
   async (res) => {
     if (res.data.desc != "successful") {
-      if (commonStore().loginErrorHandle(res.data)) {
-        Store().alertShow = true;
-        Store().alertObj = {
+      if (useCommonStore().loginErrorHandle(res.data)) {
+        useStore().alertShow = true;
+        useStore(0).alertObj = {
           msg: `錯誤，${res.data.desc}`,
           func: (e) => {
-            commonStore().tokenRemove();
+            useCommonStore().tokenRemove();
           },
         };
       }
@@ -47,8 +46,8 @@ apiRequest.interceptors.response.use(
      * HTTP錯誤處理 start
      *********************************************/
     if (error.message == "timeout of 3000ms exceeded") {
-      Store().alertShow = true;
-      Store().alertShow = {
+      useStore().alertShow = true;
+      useStore().alertShow = {
         msg: `連線超時，請稍後在試`,
         func: (e) => {},
       };
@@ -58,22 +57,22 @@ apiRequest.interceptors.response.use(
       switch (error.response.status) {
         case 404:
           router.push({ name: "404error" });
-          commonStore().apiErrorMsg = "你要找的頁面不存在";
+          useCommonStore.apiErrorMsg = "你要找的頁面不存在";
           console.log("404：Not Found 你要找的頁面不存在");
           break;
         case 500:
           router.push({ name: "404error" });
-          commonStore().apiErrorMsg = "Internal Server Error";
+          useCommonStore.apiErrorMsg = "Internal Server Error";
           console.log("500：Internal Server Error 程式發生問題");
           break;
         case 502:
           router.push({ name: "404error" });
-          commonStore().apiErrorMsg = "Bad Gateway";
+          useCommonStore.apiErrorMsg = "Bad Gateway";
           console.log("502：Bad Gateway 上游伺服器接收到無效的回應");
           break;
         case 504:
           router.push({ name: "404error" });
-          commonStore().apiErrorMsg = "Gateway Timeout";
+          useCommonStore().apiErrorMsg = "Gateway Timeout";
           console.log(
             "504：Gateway Timeout 未能及時從上游伺服器或者輔助伺服器收到回應"
           );

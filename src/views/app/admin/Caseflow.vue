@@ -36,9 +36,11 @@
 
 <script setup>
 import caseCard from "../../../components/CaseCard.vue";
-import { Store, flowStore } from "../../../store/store";
-const system = Store().postOption.System;
-const dataList = flowStore().caseflow;
+import { useFlowStore, useStore } from "../../../store/store";
+const Store = useStore();
+const flowStore = useFlowStore();
+const system = Store.postOption.System;
+const dataList = flowStore.caseflow;
 system.forEach((e) => {
   e.flow = [];
   for (let i = 0; i < dataList.length; i++) {

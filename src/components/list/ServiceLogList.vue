@@ -13,7 +13,7 @@
       <div class="w-1/16"></div>
     </li>
     <li
-      v-for="(log, index) in Store().pageData.pager"
+      v-for="(log, index) in Store.pageData.pager"
       :key="log.serviceId"
       class="flex justify-between my-1 h-12 bg-white border-4 border-transparent box-border hover:shadow-xl hover:border-l-primary cursor-pointer"
       :class="{
@@ -83,8 +83,8 @@
 
 <script setup>
 import { ref } from "vue";
-import { Store } from "../../store/store";
-
+import { useStore } from "../../store/store";
+const Store = useStore();
 const liSelected = ref(false);
 
 const modalLog = ref({});

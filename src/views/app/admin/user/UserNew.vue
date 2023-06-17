@@ -8,26 +8,48 @@
     </newStepHeader>
   </div>
   <keep-alive>
-    <component :is="getNewTitle"></component>
-  </keep-alive>
+    <component
+      :is="getNewTitle"
+      :newUser="newUser"
+      @newUserConfirm="newUserConfirm"
+    ></component
+  ></keep-alive>
 </template>
 <script setup>
-import { userStore, Store } from "../../../../store/store";
-import { onBeforeMount, computed, shallowRef, markRaw } from "vue";
-import usernewBasic from "../../../../components/user/userNewBasic.vue";
-import usernewAuth from "../../../../components/user/userNewAuth.vue";
-import usernewConfirm from "../../../../components/user/userNewConfirm.vue";
-import userNewRange from "../../../../components/user/userNewRange.vue";
-import newStepHeader from "../../../../components/newStepHeader.vue";
+import { computed, markRaw, onBeforeMount, ref, shallowRef } from "vue";
 import {
   SelectDept,
   SelectSvcSchema,
   checkRangeValid,
 } from "../../../../api/service";
+import newStepHeader from "../../../../components/newStepHeader.vue";
+import usernewAuth from "../../../../components/user/userNewAuth.vue";
+import usernewBasic from "../../../../components/user/userNewBasic.vue";
+import usernewConfirm from "../../../../components/user/userNewConfirm.vue";
+import userNewRange from "../../../../components/user/userNewRange.vue";
+import { useStore, useUserStore } from "../../../../store/store";
+const Store = useStore();
+const userStore = useUserStore();
 const newTitle = shallowRef([]);
+const rangeValid = ref(false);
+const newUser = ref({
+  name: null,
+  empid: null,
+  mima: null,
+  memo: null,
+  deptcode: null,
+  // email: null,
+  // title: null,
+  authority: [],
+  range: [],
+  sets: [],
+});
+const newUserConfirm = (value) => {
+  newUser.value = value;
+};
 const getNewTitle = computed(() => {
   for (let item in newTitle.value.list) {
-    if (Store().currentNewStep == newTitle.value.list[item].name) {
+    if (Store.currentNewStep == newTitle.value.list[item].name) {
       newTitle.value.com = newTitle.value.list[item].com;
     }
   }
@@ -35,14 +57,15 @@ const getNewTitle = computed(() => {
 });
 
 onBeforeMount(async () => {
-  userStore().$reset();
+  userStore.$reset();
   await SelectDept();
   await SelectSvcSchema();
   let res = await checkRangeValid();
   if (res.desc == "successful") {
+    rangeValid.value = res.resBody.rangeValid;
     if (res.resBody.rangeValid == "true") {
-      userStore().userRangeAll = res.resBody.rangeList;
-      userStore().userRangeValid = res.resBody.rangeValid;
+      userStore.userRangeAll = res.resBody.rangeList;
+      userStore.userRangeValid = res.resBody.rangeValid;
       // new step init
       newTitle.value = {
         com: usernewBasic,
@@ -83,12 +106,7 @@ onBeforeMount(async () => {
         ],
       };
     }
-    Store().currentNewStep = newTitle.value.list[0].name;
+    Store.currentNewStep = newTitle.value.list[0].name;
   }
 });
 </script>
-<style scoped>
-.stepStatus {
-  @apply w-1/2 rounded px-2 my-2 font-bold text-center;
-}
-</style>

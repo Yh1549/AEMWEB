@@ -1,7 +1,7 @@
 <template>
   <headerCom></headerCom>
-  <div class="flex h-[100vh]">
-    <div class="w-2/16">
+  <div class="flex h-[93vh]">
+    <div class="w-2/16 scrollbar bg-background overflow-auto">
       <app-navgation />
     </div>
     <router-view v-slot="{ Component, route }">
@@ -14,10 +14,9 @@
   </div>
 </template>
 <script setup>
-import headerCom from "../components/header.vue";
 import appNavgation from "../components/appNavgation.vue";
-import webScroll from "../components/webScroll.vue";
 import Container from "../components/container.vue";
+import headerCom from "../components/header.vue";
 </script>
 <style scoped>
 .fade-enter-active,

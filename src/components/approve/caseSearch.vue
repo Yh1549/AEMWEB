@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-wrap justify-between items-center">
-    <div class="p-2 flex" v-if="!postStore().historyCase">
+    <div class="p-2 flex" v-if="!postStore.historyCase">
       <button class="btn btnClick" @click="postRelease">放行已選擇項目</button>
       <div class="mx-2 flex h-12">
         <label class="checkBox relative flex self-center mx-2"
@@ -8,19 +8,19 @@
             type="checkbox"
             class="hidden"
             @change="checkAll"
-            v-model="Store().checkAll"
+            v-model="Store.checkAll"
           /><span class="checkMark border-white"></span
           ><span class="checkMarkBg"></span
           ><span class="ml-2 checked:font-bold">全選</span></label
         >
-        <div v-if="Store().checkAll" class="flex items-center">
+        <div v-if="Store.checkAll" class="flex items-center">
           <span v-if="pickAllSpan"
             >*已選取這個頁面上的項目，
             <button
               class="text-cancel font-bold p-2 rounded-lg hover:bg-background"
               @click="pickAll"
             >
-              點此選取全部{{ postStore().List.length }}項目
+              點此選取全部{{ postStore.List.length }}項目
             </button></span
           >
           <span v-else
@@ -37,7 +37,7 @@
     </div>
     <div
       class="md:flex items-center gap-2 p-2 w-full"
-      :class="postStore().historyCase ? '' : 'md:w-10/12'"
+      :class="postStore.historyCase ? '' : 'md:w-10/12'"
     >
       <label
         class="bg-white rounded border-2 border-primaryDark flex my-2 p-2 w-full md:w-1/5"
@@ -63,7 +63,7 @@
             <select name="caseType" class="inp w-full" v-model="caseType">
               <option :value="undefined">-- 請選擇 --</option>
               <option
-                v-for="(i, index) in commonStore().caseType"
+                v-for="(i, index) in commonStore.caseType"
                 :value="index"
                 :key="index"
               >
@@ -73,7 +73,7 @@
             <select name="actionType" class="inp w-full" v-model="actionType">
               <option :value="undefined">-- 請選擇 --</option>
               <option
-                v-for="(i, index) in commonStore().actionType"
+                v-for="(i, index) in commonStore.actionType"
                 :value="index"
                 :key="index"
               >
@@ -135,10 +135,13 @@
 </template>
 <script setup>
 import { ref } from "vue";
-import { Store, postStore } from "../../store/store";
-import { commonStore } from "../../store/commonStore";
-import apiRequest from "../../api/apiRequest";
 import { useRouter } from "vue-router";
+import apiRequest from "../../api/apiRequest";
+import { useCommonStore } from "../../store/commonStore";
+import { usePostStore, useStore } from "../../store/store";
+const Store = useStore();
+const postStore = usePostStore();
+const commonStore = useCommonStore();
 const router = useRouter();
 const props = defineProps(["allCase", "caseStatus"]);
 const data = ref({
@@ -159,30 +162,30 @@ const keyword = ref(undefined),
 const pickAllSpan = ref(true);
 let pickAll = () => {
   pickAllSpan.value = !pickAllSpan.value;
-  Store().chosenList = [];
-  for (let i = 0; i < postStore().List.length; i++) {
-    Store().chosenList.push(postStore().List[i].caseUuid);
+  Store.chosenList = [];
+  for (let i = 0; i < postStore.List.length; i++) {
+    Store.chosenList.push(postStore.List[i].caseUuid);
   }
 };
 let pickAllClean = () => {
   pickAllSpan.value = !pickAllSpan.value;
-  Store().chosenList = [];
-  Store().checkAll = false;
+  Store.chosenList = [];
+  Store.checkAll = false;
 };
 
 let checkAll = (e) => {
   if (e.target.checked) {
-    Store().chosenList = [];
-    for (let i = 0; i < Store().pageData.pager.length; i++) {
-      Store().chosenList.push(Store().pageData.pager[i].caseUuid);
+    Store.chosenList = [];
+    for (let i = 0; i < Store.pageData.pager.length; i++) {
+      Store.chosenList.push(Store.pageData.pager[i].caseUuid);
     }
   } else {
     pickAllSpan.value = true;
-    for (let i = 0; i < Store().pageData.pager.length; i++) {
+    for (let i = 0; i < Store.pageData.pager.length; i++) {
       let x = 0;
-      for (let y = 0; y < Store().chosenList.length; y++) {
-        if (Store().chosenList[x] == Store().pageData.pager[i].caseUuid) {
-          Store().chosenList.splice(y, 1);
+      for (let y = 0; y < Store.chosenList.length; y++) {
+        if (Store.chosenList[x] == Store.pageData.pager[i].caseUuid) {
+          Store.chosenList.splice(y, 1);
         } else {
           x += 1;
         }
@@ -192,21 +195,21 @@ let checkAll = (e) => {
 };
 const postRelease = async () => {
   // 放行按鈕
-  Store().alertShow = true;
-  Store().alertObj = {
+  Store.alertShow = true;
+  Store.alertObj = {
     msg: "是否放行已選擇案件？",
     func: async (e) => {
       if (e.target.value === "confirm") {
         await apiRequest
-          .post("FastCheckCaseAndRelease", { caseUuidList: Store().chosenList })
+          .post("FastCheckCaseAndRelease", { caseUuidList: Store.chosenList })
           .then((res) => {
             if (res.desc == "successful") {
-              Store().chosenList = [];
+              Store.chosenList = [];
               router.push({
                 name: "SvcSucess",
               });
             } else {
-              commonStore().SvcFail.msg = res.desc;
+              commonStore.SvcFail.msg = res.desc;
               router.push({
                 name: "SvcFail",
               });
@@ -229,19 +232,19 @@ const handleSearch = (init) => {
     !system.value &&
     !startTime.value
   ) {
-    Store().alertShow = true;
-    Store().alertObj = {
+    Store.alertShow = true;
+    Store.alertObj = {
       msg: "請選擇查詢條件！",
       func: (e) => {},
     };
     return;
   }
-  Store().searchMemo.keyword = keyword.value;
-  Store().searchMemo.caseType = caseType.value;
-  Store().searchMemo.actionType = actionType.value;
-  Store().searchMemo.caseStatus = caseStatus.value;
-  Store().searchMemo.system = system.value;
-  Store().searchMemo.startTime = startTime.value;
+  Store.searchMemo.keyword = keyword.value;
+  Store.searchMemo.caseType = caseType.value;
+  Store.searchMemo.actionType = actionType.value;
+  Store.searchMemo.caseStatus = caseStatus.value;
+  Store.searchMemo.system = system.value;
+  Store.searchMemo.startTime = startTime.value;
 
   let result = props.allCase;
   if (keyword.value) {
@@ -272,18 +275,18 @@ const handleSearch = (init) => {
           Date.parse(startTime.value).valueOf()
     );
   }
-  postStore().List = result;
+  postStore.List = result;
 };
 const cancelSearch = () => {
   clearSearch();
-  postStore().List = props.allCase;
+  postStore.List = props.allCase;
 };
 const clearSearch = () => {
-  Store().searchMemo.keyword = keyword.value = undefined;
-  Store().searchMemo.caseType = caseType.value = undefined;
-  Store().searchMemo.actionType = actionType.value = undefined;
-  Store().searchMemo.caseStatus = caseStatus.value = undefined;
-  Store().searchMemo.system = system.value = undefined;
-  Store().searchMemo.startTime = startTime.value = undefined;
+  Store.searchMemo.keyword = keyword.value = undefined;
+  Store.searchMemo.caseType = caseType.value = undefined;
+  Store.searchMemo.actionType = actionType.value = undefined;
+  Store.searchMemo.caseStatus = caseStatus.value = undefined;
+  Store.searchMemo.system = system.value = undefined;
+  Store.searchMemo.startTime = startTime.value = undefined;
 };
 </script>

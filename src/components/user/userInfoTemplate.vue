@@ -19,7 +19,5 @@
   </div>
 </template>
 <script setup>
-import { userStore, Store } from "../../store/store";
-import { ref } from "vue";
 import userInfoRow from "./userInfoRow.vue";
 </script>

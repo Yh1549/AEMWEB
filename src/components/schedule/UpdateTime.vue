@@ -19,7 +19,7 @@
             placeholder="* /50 * * * * ?"
             class="w-full inp block col-span-2"
             v-model="cronTime"
-            @keyup="InputValidation(Store().scheduleCheckTime, $event)"
+            @keyup="InputValidation(Store.scheduleCheckTime, $event)"
         /></label>
       </li>
       <button
@@ -33,19 +33,21 @@
   </div>
 </template>
 <script setup>
-import { Store } from "../../store/store";
 import { ref } from "vue";
-import { InputValidation } from "../../formValidation/inputCase";
 import { UpdateCronTime } from "../../api/service";
-import { commonStore } from "../../store/commonStore";
+import { InputValidation } from "../../formValidation/validTunnel";
 import router from "../../router/router";
+import { useCommonStore } from "../../store/commonStore";
+import { useStore } from "../../store/store";
+const Store = useStore();
+const commonStore = useCommonStore();
 const props = defineProps(["triggerName"]);
 const errorMsg = ref("");
 const cronTime = ref("");
 const changeTime = (name, time) => {
   let pass = false;
-  if (Store().scheduleCheckTime["tiggerTime"] != null) {
-    for (let i of Store().scheduleCheckTime["tiggerTime"]) {
+  if (Store.scheduleCheckTime["tiggerTime"] != null) {
+    for (let i of Store.scheduleCheckTime["tiggerTime"]) {
       if (i.result === false) {
         pass = false;
         errorMsg.value = i.msg;
@@ -61,8 +63,8 @@ const changeTime = (name, time) => {
     wrongInfo("cronTime");
   }
   if (pass === true) {
-    Store().alertShow = true;
-    Store().alertObj = {
+    Store.alertShow = true;
+    Store.alertObj = {
       msg: "確定設定？",
       func: async (e) => {
         if (e.target.value === "confirm") {
@@ -72,7 +74,7 @@ const changeTime = (name, time) => {
               name: "SvcSucess",
             });
           } else {
-            commonStore().SvcFail.msg = res.desc;
+            commonStore.SvcFail.msg = res.desc;
             router.push({
               name: "SvcFail",
             });
@@ -92,11 +94,11 @@ const wrongInfo = (name) => {
   };
   for (let i = 0; i < Object.keys(msgObj).length; i++) {
     if (Object.keys(msgObj)[i] == name) {
-      Store().alertObj.msg = Object.values(msgObj)[i] + " " + errorMsg.value;
+      Store.alertObj.msg = Object.values(msgObj)[i] + " " + errorMsg.value;
       break;
     }
   }
-  Store().alertShow = true;
-  Store().alertObj.func = (e) => {};
+  Store.alertShow = true;
+  Store.alertObj.func = (e) => {};
 };
 </script>

@@ -4,25 +4,25 @@
       <span class="text-2xl font-bold mr-2">審核流程</span>
 
       <span class="font-bold mx-2 bg-secondaryLight rounded px-2">
-        {{ Store().getRelSys(flowStore().caseDetail.relSys) }}
+        {{ Store.getRelSys(flowStore.caseDetail.relSys) }}
       </span>
       <span class="font-bold bg-background rounded px-2">{{
-        commonStore().caseType[flowStore().caseDetail?.type]?.title
+        commonStore.caseType[flowStore.caseDetail?.type]?.title
       }}</span>
     </div>
     <div class="w-15/16 mx-auto">
       <div class="flex flex-wrap md:items-center flex-col my-2 md:flex-row">
         <span class="block font-bold">代號：</span>
-        <span class="inpSpan">{{ flowStore().caseDetail.flow }}</span>
+        <span class="inpSpan">{{ flowStore.caseDetail.flow }}</span>
       </div>
       <div class="flex flex-wrap md:items-center flex-col my-2 md:flex-row">
         <span class="block font-bold">名稱：</span>
-        <span class="inpSpan">{{ flowStore().caseDetail.memo }}</span>
+        <span class="inpSpan">{{ flowStore.caseDetail.memo }}</span>
       </div>
       <div class="flex flex-row md:items-center mt-2 md:justify-start">
         <span class="block font-bold">層級總數：</span>
         <span class="inpSpan w-7 text-center">{{
-          flowStore().caseDetail.totalLevel
+          flowStore.caseDetail.totalLevel
         }}</span>
       </div>
     </div>
@@ -37,7 +37,7 @@
       class="w-full px-3 py-4 flex flex-wrap gap-3 md:grid md:grid-cols-2 lg:grid-cols-3"
     >
       <div
-        v-for="levelRole in flowStore().caseDetail.detailList"
+        v-for="levelRole in flowStore.caseDetail.detailList"
         :key="levelRole"
         class="w-full p-3 bg-primaryLight/30 rounded border-2 border-primaryDark"
       >
@@ -61,12 +61,13 @@
   </div>
 </template>
 <script setup>
-import { commonStore } from "../../../store/commonStore";
-import {} from "../../../store/store";
-import { ref, reactive, onBeforeMount } from "vue";
-import { useRoute } from "vue-router";
-import { Store, flowStore } from "../../../store/store";
+import { onBeforeMount } from "vue";
 import { findSysList } from "../../../api/service";
+import { useCommonStore } from "../../../store/commonStore";
+import { useFlowStore, useStore } from "../../../store/store";
+const Store = useStore();
+const commonStore = useCommonStore();
+const flowStore = useFlowStore();
 onBeforeMount(async () => {
   await findSysList();
 });

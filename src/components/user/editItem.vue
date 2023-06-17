@@ -2,9 +2,7 @@
   <div
     class="flex group border-2 border-primaryLight mb-4"
     :class="
-      Store().getSvcAuth('UpdateUser')
-        ? 'cursor-pointer'
-        : 'pointer-events-none'
+      Store.getSvcAuth('UpdateUser') ? 'cursor-pointer' : 'pointer-events-none'
     "
   >
     <span class="w-full md:w-4/16 font-bold border-r-2 p-4 border-primaryLight"
@@ -24,5 +22,6 @@
   </div>
 </template>
 <script setup>
-import { Store } from "../../store/store";
+import { useStore } from "../../store/store";
+const Store = useStore();
 </script>

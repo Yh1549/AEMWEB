@@ -15,22 +15,24 @@
 </template>
 <script setup>
 import { ref } from "vue";
-import { adStore, Store } from "../store/store";
 import apiRequest from "../api/apiRequest";
+import { useAdStore, useStore } from "../store/store";
+const Store = useStore();
+const adStore = useAdStore();
 
 const props = defineProps(["options"]);
 
-const selected = ref(Store().adBlockMemo.system);
+const selected = ref(Store.adBlockMemo.system);
 
 const getSelected = () => {
-  Store().adBlockMemo.system = selected.value;
-  adStore().List = [];
+  Store.adBlockMemo.system = selected.value;
+  adStore.List = [];
   apiRequest
     .post("FindSystemBlock", { system: selected.value.name })
     .then((res) => {
       if (res.desc == "successful") {
-        adStore().adBlockList = res.resBody.blockModelList;
-        adStore().selected = selected.value.name;
+        adStore.adBlockList = res.resBody.blockModelList;
+        adStore.selected = selected.value.name;
       }
     })
     .catch();

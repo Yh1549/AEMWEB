@@ -14,7 +14,7 @@
               'bg-secondary': type == 'POST',
               'bg-primaryLight': type == 'AD',
             }"
-            >{{ commonStore().caseType[type]?.title }}</span
+            >{{ commonStore.caseType[type]?.title }}</span
           >
         </div>
         <span class="block font-bold w-fit border-primaryLight">
@@ -63,10 +63,11 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import apiRequest from "../api/apiRequest";
-import { commonStore } from "../store/commonStore";
+import { ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useCommonStore } from "../store/commonStore";
+
+const commonStore = useCommonStore();
 const Prop = defineProps({ flow: Object });
 const flowCode = ref(Prop.flow.flow);
 const flowName = ref(Prop.flow.memo);

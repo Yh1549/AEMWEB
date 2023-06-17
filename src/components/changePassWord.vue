@@ -1,177 +1,177 @@
 <template>
-  <div class="fixed z-[10000] left-0 top-0 w-full h-full bg-black/[.40]"></div>
-  <div
-    class="absolute top-36 rounded-md border bg-background shadow-lg w-[90%] md:w-[65%] lg:w-[35%] rounded z-[10000]"
+  <dialog
+    class="rounded border bg-background shadow-lg w-6/16"
+    ref="dialog"
+    @close="closeModal"
   >
-    <div class="flex justify-end fill-slate-400 mt-3 mr-3">
-      <button
-        @click="Store().changePWShow = false"
-        v-if="!route.query.closeIcon"
-      >
-        <i class="fa-solid fa-x"></i>
-      </button>
-    </div>
-    <div class="text-center">
-      <div class="items-center">
-        <div class="font-bold text-2xl mb-3">變更密碼</div>
-        <ul class="flex flex-col px-10 pb-10">
-          <li class="py-2 md:py-4 grid md:grid-cols-2 gap-x-8">
-            <span class="self-center mb-2 md:mb-0">
-              <div class="border-b-2 border-secondaryDark drop-shadow-sm w-fit">
-                舊密碼 :
-              </div></span
-            >
-            <label class="inpLabel">
-              <input
-                type="password"
-                name="oldPw"
-                data-valid-option="notNull,charMax(12),charMin(6),numMixEn,notCn"
-                class="w-full inp block"
-                v-model="oldpw"
-                @keyup="InputValidation(Store().changePWList, $event)"
-              />
-            </label>
-          </li>
-          <li class="py-2 md:py-4 grid md:grid-cols-2 gap-x-8">
-            <span class="self-center mb-2 md:mb-0">
-              <div class="border-b-2 border-secondaryDark drop-shadow-sm w-fit">
-                新密碼 :
-              </div>
-            </span>
-            <label class="inpLabel">
-              <input
-                type="password"
-                name="newPw"
-                data-valid-option="notNull,charMax(12),charMin(6),numMixEn,notCn"
-                class="w-full inp block"
-                v-model="newPw"
-                @keyup="InputValidation(Store().changePWList, $event)"
-              />
-            </label>
-          </li>
-          <li class="py-2 md:py-4 grid md:grid-cols-2 gap-x-8">
-            <span class="self-center mb-2 md:mb-0">
-              <div class="border-b-2 border-secondaryDark drop-shadow-sm w-fit">
-                確認密碼 :
-              </div>
-            </span>
-            <label class="inpLabel">
-              <input
-                type="password"
-                name="checkPw"
-                data-valid-option="notNull"
-                class="w-full inp block"
-                v-model="checkPw"
-                @keyup="InputValidation(Store().changePWList, $event)"
-              />
-            </label>
-          </li>
-          <span class="text-cancel font-bold mt-3 self-center"
-            >*密碼規則：請輸入6~12碼，英文數字混和</span
-          >
-          <button
-            id="ok-btn"
-            class="btn btnClick w-full mt-3"
-            @click="changePw"
-          >
-            變更
-          </button>
-        </ul>
+    <loadSpinner v-if="Store.loadingSpinner">
+      <template #title>儲存中</template>
+    </loadSpinner>
+    <form v-else class="flex flex-col gap-2 items-center">
+      <div class="h-24">
+        <p>舊密碼 :</p>
+        <label class="inpLabel w-full">
+          <input
+            type="password"
+            class="w-full inp"
+            v-verify:[oldPwValidArg]="changePWList.oldPw"
+            v-model="oldpw"
+          />
+        </label>
+        <inputErrorMsg class="block" v-if="changePWList.oldPw.pass == false">{{
+          changePWList.oldPw.msg
+        }}</inputErrorMsg>
       </div>
-    </div>
-  </div>
+      <div class="h-24">
+        <p>新密碼 :</p>
+        <label class="inpLabel">
+          <input
+            type="password"
+            class="w-full inp block"
+            v-verify:[newPwValidArg]="changePWList.newPw"
+            v-model="newPw"
+          />
+        </label>
+        <inputErrorMsg class="block" v-if="changePWList.newPw.pass == false">{{
+          changePWList.newPw.msg
+        }}</inputErrorMsg>
+      </div>
+      <div class="h-24">
+        <p>確認密碼 :</p>
+        <label class="inpLabel">
+          <input
+            type="password"
+            class="w-full inp block"
+            v-model="checkPw"
+            @change="mimaDoubleCheck"
+          />
+        </label>
+        <inputErrorMsg
+          class="block"
+          v-if="changePWList.checkPw.pass == false"
+          >{{ changePWList.checkPw.msg }}</inputErrorMsg
+        >
+      </div>
+      <div class="flex gap-8 my-2">
+        <button
+          v-if="closeBtnShow"
+          class="btn bg-cancel"
+          value="cancel"
+          formmethod="dialog"
+        >
+          取消變更
+        </button>
+        <button class="btn bg-submit" @click="changePw">儲存變更</button>
+      </div>
+    </form>
+    <p class="h-8 text-cancel font-bold text-center">
+      <i v-if="alertMsg != null" class="fa-solid fa-circle-exclamation"></i
+      >{{ alertMsg }}
+    </p>
+  </dialog>
+  <button class="btn" @click="dialog.showModal()">更改密碼</button>
 </template>
 <script setup>
-import { Store } from "../store/store";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { UpdateUserMiMa } from "../api/service";
-import { useRouter, useRoute } from "vue-router";
-import {
-  InputValidation,
-} from "../formValidation/inputCase";
+import { useStore } from "../store/store";
+import inputErrorMsg from "./inputErrorMsg.vue";
+const Store = useStore();
+
 const router = useRouter();
 const route = useRoute();
-const oldpw = ref(""),
-  newPw = ref(""),
-  checkPw = ref(""),
-  errorMsg = ref("");
+const dialog = ref(null);
+const alertMsg = ref(null);
+const closeBtnShow = ref(true);
+const oldPwValidArg = [
+  "notNull",
+  "charMax(12)",
+  "charMin(6)",
+  "numMixEn",
+  "notCn",
+];
+const newPwValidArg = [
+  "notNull",
+  "charMax(12)",
+  "charMin(6)",
+  "numMixEn",
+  "notCn",
+];
+
+const changePWList = ref({
+  oldPw: { pass: null, msg: null },
+  newPw: { pass: null, msg: null },
+  checkPw: { pass: null, msg: null },
+});
+
+const oldpw = ref("");
+const newPw = ref("");
+const checkPw = ref("");
+
+const closeModal = () => {
+  oldpw.value = "";
+  newPw.value = "";
+  checkPw.value = "";
+  alertMsg.value = null;
+  changePWList.value.oldPw.pass = null;
+  changePWList.value.oldPw.msg = null;
+  changePWList.value.newPw.pass = null;
+  changePWList.value.newPw.msg = null;
+  changePWList.value.checkPw.pass = null;
+  changePWList.value.checkPw.msg = null;
+};
+
+const mimaDoubleCheck = () => {
+  if (checkPw.value == newPw.value) {
+    changePWList.value.checkPw.pass = true;
+  } else {
+    changePWList.value.checkPw.pass = false;
+    changePWList.value.checkPw.msg = "密碼不符合";
+  }
+};
+const validCheck = () => {
+  for (let item in changePWList.value) {
+    if (changePWList.value[item].pass != true) {
+      return false;
+    }
+  }
+  return true;
+};
+const updateMima = async () => {
+  Store.loadingSpinner = true;
+  const res = await UpdateUserMiMa(oldpw.value, newPw.value);
+  if (res.desc == "successful") {
+    Store.loadingSpinner = false;
+    sessionStorage.removeItem("token");
+    router.push({
+      name: "Login",
+    });
+    Store.alertShow = true;
+    Store.alertObj = {
+      msg: "變更成功，請重新登入",
+      func: (e) => {},
+    };
+  } else if (res.code == "AMS009") {
+    Store.loadingSpinner = false;
+    alertMsg.value = "舊密碼錯誤，請重新確認";
+  } else {
+    Store.loadingSpinner = false;
+    alertMsg.value = "更改失敗，請重新確認";
+  }
+};
+//
 const changePw = async () => {
-  let pass = false;
-  for (let value in Store().changePWList) {
-    if (Store().changePWList[value] != null) {
-      for (let i of Store().changePWList[value]) {
-        if (i.result === false) {
-          pass = false;
-          errorMsg.value = i.msg;
-          wrongInfo(value);
-          break;
-        } else {
-          pass = true;
-        }
-      }
-      if (!pass) {
-        break;
-      }
-    } else {
-      pass = false;
-      errorMsg.value = "不可為空";
-      wrongInfo(value);
-      break;
-    }
-  }
-  if (pass === true) {
-    if (newPw.value != checkPw.value) {
-      Store().alertShow = true;
-      Store().alertObj = {
-        msg: "確認密碼錯誤，請確認密碼是否相符",
-        func: (e) => {},
-      };
-    } else {
-      const res = await UpdateUserMiMa(oldpw.value, newPw.value);
-      if (res.desc == "successful") {
-        Store().alertShow = true;
-        Store().alertObj = {
-          msg: "變更成功，請重新登入",
-          func: (e) => {},
-        };
-        sessionStorage.removeItem("token");
-        router.push({
-          name: "Login",
-        });
-      } else if (res.code == "AMS009") {
-        Store().alertShow = true;
-        Store().alertObj = {
-          msg: "舊密碼錯誤，請重新確認",
-          func: (e) => {},
-        };
-      } else {
-        Store().alertShow = true;
-        Store().alertObj = {
-          msg: "更改失敗，請重新確認",
-          func: (e) => {},
-        };
-      }
-    }
+  if (validCheck()) {
+    updateMima();
+  } else {
+    alertMsg.value = "請重新檢查輸入資料";
   }
 };
-const wrongInfo = (name) => {
-  let msgObj = {
-    oldPw: "舊密碼",
-    newPw: "新密碼",
-    checkPw: "確認密碼",
-  };
-  for (let i = 0; i < Object.keys(msgObj).length; i++) {
-    if (Object.keys(msgObj)[i] == name) {
-      Store().alertObj.msg = Object.values(msgObj)[i] + " " + errorMsg.value;
-      break;
-    }
+onMounted(() => {
+  if (route.query.changeMima == "true") {
+    dialog.value.showModal();
+    closeBtnShow.value = false;
   }
-  Store().alertShow = true;
-  Store().alertObj.func = (e) => {};
-};
+});
 </script>
-<style scoped>
-span {
-  @apply flex items-center;
-}
-</style>

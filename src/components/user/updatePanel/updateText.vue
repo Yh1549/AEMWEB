@@ -1,28 +1,30 @@
 <template>
-  <div class="w-1/2 self-center mx-auto">
+  <div class="w-1/2 self-center mx-auto h-24">
     <span class="font-bold">使用者名稱</span>
     <label class="w-full inpLabel">
       <input
         type="text"
-        class="inp"
-        :placeholder="userStore().userEdit?.name"
-        data-valid-option="notNull"
-        name="check"
-        v-model="userStore().userModify.name"
-        @keyup="InputValidation(userStore().userEditCheck, $event)"
+        class="inp w-full"
+        :placeholder="userStore.userEdit?.name"
+        v-verify:[nameValidArg]="checking"
+        v-model="userStore.userModify.name"
     /></label>
-    <span
-      v-if="getInputValidation(userStore().userEditCheck.check).result == false"
-      class="text-cancel font-bold"
-      ><i class="fa-solid fa-circle-exclamation mx-2"></i
-      >{{ getInputValidation(userStore().userEditCheck.check).msg }}</span
-    >
+    <inputErrorMsg v-if="checking.pass == false">{{
+      checking.msg
+    }}</inputErrorMsg>
   </div>
 </template>
 <script setup>
-import { userStore } from "../../../store/store";
-import {
-  InputValidation,
-  getInputValidation,
-} from "../../../formValidation/inputCase";
+import { ref, watch } from "vue";
+import { useUserStore } from "../../../store/store";
+import inputErrorMsg from "../../inputErrorMsg.vue";
+
+const userStore = useUserStore();
+
+const emit = defineEmits(["checking"]);
+const checking = ref({ pass: null, msg: null });
+const nameValidArg = ["notNull", "charMax(64)"];
+watch(checking.value, () => {
+  emit("checking", checking.value);
+});
 </script>

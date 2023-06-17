@@ -7,17 +7,17 @@
       <div
         class="w-full transition-transform duration-300"
         :class="[
-          userStore().userUpdateToggle ? '-translate-x-[100%]' : '',
-          Store().getSvcAuth('UpdateUser') ? '' : 'pointer-events-none',
+          userStore.userUpdateToggle ? '-translate-x-[100%]' : '',
+          Store.getSvcAuth('UpdateUser') ? '' : 'pointer-events-none',
         ]"
       >
         <editItem @click="UserUpdateToggle(updateText)">
           <template #title>使用者名稱</template>
-          <template #content>{{ userStore().userEdit.name }}</template>
+          <template #content>{{ userStore.userEdit.name }}</template>
         </editItem>
         <editItem class="pointer-events-none">
           <template #title>員工編號</template>
-          <template #content>{{ userStore().userEdit.empid }}</template>
+          <template #content>{{ userStore.userEdit.empid }}</template>
         </editItem>
         <editItem @click="UserUpdateToggle(updateMima)">
           <template #title>密碼</template>
@@ -26,13 +26,13 @@
         <editItem @click="UserUpdateToggle(updateDept)">
           <template #title>部門</template>
           <template #content>
-            {{ userStore().userEdit.deptname }}
-            {{ userStore().userEdit.deptunit }}</template
+            {{ userStore.userEdit.deptname }}
+            {{ userStore.userEdit.deptunit }}</template
           >
         </editItem>
         <editItem @click="UserUpdateToggle(updateEmail)">
           <template #title> e-mail</template>
-          <template #content> {{ userStore().userEdit.email }}</template>
+          <template #content> {{ userStore.userEdit.email }}</template>
         </editItem>
         <editItem class="pointer-events-none">
           <template #title>帳號狀態</template>
@@ -40,19 +40,17 @@
             <span
               class="w-full flex md:w-11/16 font-bold text-center md:text-start"
             >
-              {{
-                userStore().userEdit.status == "enable" ? "啟用中" : "已刪除"
-              }}
+              {{ userStore.userEdit.status == "enable" ? "啟用中" : "已刪除" }}
             </span></template
           >
         </editItem>
         <editItem @click="UserUpdateToggle(updateFailCount)">
           <template #title>密碼輸入錯誤次數 </template>
-          <template #content> {{ userStore().userEdit.failcnt }}</template>
+          <template #content> {{ userStore.userEdit.failcnt }}</template>
         </editItem>
         <editItem @click="UserUpdateToggle(updateMemo)">
           <template #title>備註</template>
-          <template #content> {{ userStore().userEdit.memo }}</template>
+          <template #content> {{ userStore.userEdit.memo }}</template>
         </editItem>
       </div>
       <userUpdatePanel></userUpdatePanel>
@@ -60,22 +58,25 @@
   </div>
 </template>
 <script setup>
-import { Store, userStore } from "../../../../../store/store";
 import { markRaw } from "vue";
+import { useStore, useUserStore } from "../../../../../store/store";
 
-import userUpdatePanel from "../../../../../components/user/userUpdatePanel.vue";
-import updateText from "../../../../../components/user/updatePanel/updateText.vue";
-import updateMima from "../../../../../components/user/updatePanel/updateMima.vue";
+import editItem from "../../../../../components/user/editItem.vue";
 import updateDept from "../../../../../components/user/updatePanel/updateDept.vue";
 import updateEmail from "../../../../../components/user/updatePanel/updateEmail.vue";
 import updateFailCount from "../../../../../components/user/updatePanel/updateFailCount.vue";
 import updateMemo from "../../../../../components/user/updatePanel/updateMemo.vue";
-import editItem from "../../../../../components/user/editItem.vue";
+import updateMima from "../../../../../components/user/updatePanel/updateMima.vue";
+import updateText from "../../../../../components/user/updatePanel/updateText.vue";
+import userUpdatePanel from "../../../../../components/user/userUpdatePanel.vue";
+const Store = useStore();
+const userStore = useUserStore();
+
 //放頁面user修改後資料
 const UserUpdateToggle = (com) => {
-  if (Store().getSvcAuth("UpdateUser")) {
-    userStore().userUpdateToggle = !userStore().userUpdateToggle;
-    userStore().userCurrentUpdate = markRaw(com);
+  if (Store.getSvcAuth("UpdateUser")) {
+    userStore.userUpdateToggle = !userStore.userUpdateToggle;
+    userStore.userCurrentUpdate = markRaw(com);
   }
 };
 </script>

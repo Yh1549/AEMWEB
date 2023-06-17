@@ -7,5 +7,3 @@
     <p class="border-t-2 border-secondaryDark">您的權限不足以瀏覽此頁面</p>
   </div>
 </template>
-<script setup></script>
-<style></style>
