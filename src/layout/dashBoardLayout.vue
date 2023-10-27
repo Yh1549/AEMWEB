@@ -7,7 +7,9 @@
     <router-view v-slot="{ Component, route }">
       <transition name="fade" mode="out-in">
         <Container :key="route.name">
-          <template #mainContent> <component :is="Component" /> </template>
+          <template #mainContent>
+            <component :is="Component" />
+          </template>
         </Container>
       </transition>
     </router-view>

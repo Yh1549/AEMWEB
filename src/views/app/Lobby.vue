@@ -60,7 +60,7 @@
       </div>
     </div>
     <!-- NoticeForRoleLightVer -->
-    <div class="ml-4 hidden md:flex lg:w-5/16">
+    <div class="ml-4 flex">
       <div
         class="h-auto p-2 rounded my-4 shadow-lg border-primaryDark border-2 w-full bg-white"
       >

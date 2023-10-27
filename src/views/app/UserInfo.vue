@@ -68,7 +68,7 @@
               備註 :
             </div>
           </span>
-          <label class="inpLabel">
+          <label class="inpLabel h-11">
             <span class="grid items-center">
               {{ Store.currentUser().deptmemo }}</span
             >

@@ -1,58 +1,61 @@
 <template>
   <div
-    class="w-full box-border flex flex-col justify-center items-center rounded-b bg-primary"
+    class="w-full py-4 box-border flex flex-col justify-center items-center rounded-b bg-primary"
   >
-    <div class="my-2 w-full md:w-1/2 flex justify-evenly">
-      <button
-        class="pgeControl pgeHover hidden md:inline-block"
-        @click="showPage(1)"
-      >
+    <div class="my-2 flex gap-4 justify-center">
+      <button class="btn hover:bg-primaryLight" @click="showPage(1)">
         <i class="fa-solid fa-angles-left"></i>
       </button>
       <button
-        class="pgeControl pgeHover"
+        class="btn hover:bg-primaryLight"
         @click="showPage(pageData.pageCurrent - 1)"
       >
         <i class="fa-solid fa-angle-left"></i>
       </button>
-      <div class="pgeControl">
-        <input
-          type="tel"
-          class="w-8 md:w-10 text-primaryDark mx-2 px-2"
-          v-model="pageData.pageCurrent"
-          min="1"
-          :max="pageData.totalPages"
-          maxlength="5"
-          @blur="showPage(pageData.pageCurrent)"
-        />
-        <span class="font-bold">Of {{ pageData.totalPages }}</span>
+      <div class="flex gap-4 justify-center">
+        <label class="inpLabel w-1/2">
+          <input
+            type="tel"
+            class="inp w-full"
+            v-model="pageData.pageCurrent"
+            min="1"
+            :max="pageData.totalPages"
+            maxlength="5"
+            @blur="showPage(pageData.pageCurrent)"
+          />
+        </label>
+        <span class="font-bold self-center">Of {{ pageData.totalPages }}</span>
       </div>
       <button
-        class="pgeControl pgeHover"
+        class="btn hover:bg-primaryLight"
         @click="showPage(pageData.pageCurrent + 1)"
       >
         <i class="fa-solid fa-angle-right"></i>
       </button>
       <button
-        class="pgeControl pgeHover hidden md:inline-block"
+        class="btn hover:bg-primaryLight"
         @click="showPage(pageData.totalPages)"
       >
         <i class="fa-solid fa-angles-right"></i>
       </button>
     </div>
-    <div class="hidden md:inline-block">
-      <select
-        name="pageSize"
-        id="pageSize"
-        class="hover:cursor-pointer"
-        v-model="pageData.pageSize"
-        @change="showPage(1)"
-      >
-        <option v-for="item in Store.pageSizeOptions" :value="item" :key="item">
-          {{ item }}
-        </option>
-      </select>
-      <span class="">總共{{ pageName.length }}筆資料</span>
+    <div class="flex gap-4">
+      <label class="inpLabel">
+        <select
+          class="inp hover:cursor-pointer"
+          v-model="pageData.pageSize"
+          @change="showPage(1)"
+        >
+          <option
+            v-for="item in Store.pageSizeOptions"
+            :value="item"
+            :key="item"
+          >
+            {{ item }}
+          </option>
+        </select>
+      </label>
+      <span class="font-bold self-center">總共{{ pageName.length }}筆資料</span>
     </div>
   </div>
 </template>
@@ -115,11 +118,3 @@ watchEffect(() => {
   // pager 為 render 出來的 list
 });
 </script>
-<style scoped>
-.pgeControl {
-  @apply p-2 border-b-4 md:px-4;
-}
-.pgeHover {
-  @apply hover:border-secondaryDark;
-}
-</style>

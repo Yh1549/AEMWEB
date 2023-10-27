@@ -16,7 +16,10 @@
       </span>
     </div>
     <div class="my-4">
-      <span class="block">密碼</span>
+      <span>密碼</span>
+      <inputErrorMsg v-if="checking.pass == false">{{
+        checking.msg
+      }}</inputErrorMsg>
       <label class="inpLabel w-full">
         <input
           type="password"
@@ -27,9 +30,9 @@
           v-model="userStore.userModify.mima"
         />
       </label>
-      <inputErrorMsg v-if="checking.pass == false">{{
-        checking.msg
-      }}</inputErrorMsg>
+      <span class="text-cancel font-bold whitespace-nowrap"
+        >*需為6~12碼，至少包含1個英文大寫字母、1個英文小寫字母、以及1個數字</span
+      >
     </div>
   </div>
 </template>

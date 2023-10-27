@@ -92,6 +92,9 @@ export default createRouter({
             requiresAuth: true,
             pageClass: "approve",
             title: "審核案件",
+          }, beforeEnter: async (to, form, next) => {
+            await findSysList();
+            next();
           },
         },
         {
@@ -112,6 +115,19 @@ export default createRouter({
             requiresAuth: true,
             pageClass: "approve",
             title: "案件總覽",
+          }, beforeEnter: async (to, form, next) => {
+            await findSysList();
+            next();
+          },
+        },
+        {
+          path: "/approveHisDetail/:caseUuid",
+          name: "approveHisDetail",
+          component: () => import("../views/app/approve/approveHisDetail.vue"),
+          meta: {
+            requiresAuth: true,
+            pageClass: "approve",
+            title: "審核總覽細節",
           },
         },
         {
@@ -191,6 +207,10 @@ export default createRouter({
             pageClass: "advertise",
             title: "新增廣告",
           },
+          beforeEnter: async (ro, from, next) => {
+            findSysList();
+            next();
+          },
         },
         // 廣告排程
         {
@@ -231,7 +251,7 @@ export default createRouter({
               .then((res) => {
                 useStore().sysMsg = res.resBody.sysMsgList;
               })
-              .catch((e) => {});
+              .catch((e) => { });
             next();
           },
         },

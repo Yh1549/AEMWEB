@@ -35,19 +35,19 @@
       </formRowItem>
     </formRow>
     <formRow class="w-3/4 mx-auto">
-      <formRowItem>
+      <formRowItem :width="'w-full'">
         <span class="font-bold block">標籤 :</span>
-        <label class="inpLabel w-full">
-          <select name="tag" class="w-full inp" v-model="updatePost.tag">
-            <option
-              v-for="item in Store.postOption.Tag"
-              :key="item.name"
+        <div class="inpLabel w-full flex gap-2">
+          <label v-for="item in tags" class="inpLabel cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="updatePost.tag"
               :value="item.name"
-            >
-              {{ item.memo }}
-            </option>
-          </select>
-        </label>
+              :checked="props.data.tag.includes(item.name)"
+            />
+            {{ item.memo }}/{{ item.name }}
+          </label>
+        </div>
       </formRowItem>
     </formRow>
 
@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { onBeforeMount, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import apiRequest from "../../api/apiRequest";
 import { findPostTag } from "../../api/service";
@@ -76,6 +76,7 @@ const commonStore = useCommonStore();
 const router = useRouter();
 const toggleTop = ref(false);
 const props = defineProps(["data"]);
+const tags = ref([]);
 //
 const updatePost = ref({
   uuid: props.data.uuid,
@@ -97,6 +98,7 @@ const sendUpdatePost = async () => {
     Store.loadingSpinner = false;
     Store.detailUpdateToggle = false;
     await findPostTag(props.data.relSys);
+    router.push({ name: "SvcSucess" });
   } else {
     commonStore.SvcFail.msg = res.desc;
     router.push({ name: "SvcFail" });
@@ -127,9 +129,15 @@ const sendNewPostInfo = () => {
 };
 watch(toggleTop, () => {
   if (toggleTop.value) {
-    updatePost.top = "1";
+    updatePost.value.top = "1";
   } else {
-    updatePost.top = "0";
+    updatePost.value.top = "0";
+  }
+});
+onBeforeMount(async () => {
+  let res = await apiRequest.post("FindPostTag", { system: props.data.relSys });
+  if (res.desc == "successful") {
+    tags.value = res.resBody.tagModelList;
   }
 });
 </script>

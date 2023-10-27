@@ -19,7 +19,7 @@
                 :key="item.memo"
                 :value="item.name"
               >
-                {{ item.memo }}
+                {{ item.memo }} / {{ item.name }}
               </option>
             </select>
           </label>
@@ -123,7 +123,7 @@
             <span class="flex flex-wrap justify-between">
               <label for="role" class="font-bold min-w-fit">審核角色：</label>
               <div class="ml-3">
-                {{ flow.memo + level }}
+                {{ flow.memo + "放行_第" + level + "層" }}
               </div>
             </span>
           </div>
@@ -169,7 +169,7 @@ const levelAutofill = () => {
   for (let i = 1; i <= flow.totalLevel; i++) {
     flow.detailList.push({
       role: flow.relSys + flow.type + flow.totalLevel + "_" + i,
-      memo: flow.memo + i,
+      memo: flow.memo + "放行_第" + i + "層",
       level: i,
     });
   }

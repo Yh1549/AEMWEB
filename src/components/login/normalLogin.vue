@@ -29,7 +29,7 @@
     <div class="w-full flex justify-between gap-4 px-2 my-2">
       <span class="text-cancel font-bold">{{ errorText }}</span>
       <button
-        class="btnClick font-bold border-2 p-1 border-primaryDark rounded hover:bg-secondaryLight"
+        class="btn btnClick bg-primaryDark hover:bg-primary"
         @click="normalLogin()"
         :disabled="Store.loadingSpinner"
       >
@@ -47,6 +47,7 @@
 import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import apiRequest from "../../api/apiRequest";
+import { checkValidList } from "../../formValidation/validTunnel";
 import { useStore } from "../../store/store";
 const Store = useStore();
 
@@ -65,70 +66,63 @@ const normalLoginBtnText = ref("登入");
 const errorText = ref("");
 
 const normalLogin = async () => {
-  for (let item in loginChecking.value) {
-    if (loginChecking.value[item].pass != true) {
-      errorText.value = "請重新檢查輸入資料";
-      return;
-    }
+  if (!checkValidList(loginChecking.value)) {
+    errorText.value = "請重新檢查輸入資料";
+    return;
   }
-  Store.loadingSpinner = true;
   normalLoginBtnText.value = "登入中...";
-  await apiRequest
-    .post("/UserLogin", {
-      empid: adNum.value,
-      mima: mima.value,
-    })
-    .then(async (res) => {
-      // 登入成功
-      if (res.desc == "successful") {
-        Store.$reset();
-        sessionStorage.setItem("userInfo", JSON.stringify(res.resBody));
+  // try {
+  const res = await apiRequest.post("/UserLogin", {
+    empid: adNum.value,
+    mima: mima.value,
+  });
 
-        await apiRequest
-          .post("CheckMimaValid", {})
-          .then((res) => {
-            Store.loadingSpinner = false;
-            if (res.desc !== "successful") {
-              Store.alertShow = true;
-              Store.alertObj = {
-                msg: `${res.desc}，請更換密碼`,
-                func: (e) => {
-                  // Store.changePWShow = true;
-                  router.push({
-                    name: "userInfo",
-                    query: { changeMima: true },
-                  });
-                },
-              };
-            } else {
-              router
-                .push({
-                  name: "Lobby",
-                })
-                .then(() => {
-                  if (router.currentRoute.value.name !== "Lobby") {
-                    router.go(0);
-                  }
-                });
-            }
-          })
-          .catch((e) => {});
-      } else {
-        Store.loadingSpinner = false;
-        normalLoginBtnText.value = "登入";
-        errorText.value = res.desc;
-      }
-    })
-    .catch((e) => {
-      Store.loadingSpinner = false;
-      normalLoginBtnText.value = "登入";
-      errorText.value = "登入失敗";
-    });
+  if (res.desc == "successful") {
+    Store.$reset();
+    Store.loadingSpinner = false;
+    sessionStorage.setItem("userInfo", JSON.stringify(res.resBody));
+
+    const resMima = await apiRequest.post("CheckMimaValid", {});
+    if (resMima.desc !== "successful") {
+      Store.alertShow = true;
+      Store.alertObj = {
+        msg: `${res.desc}，請更換密碼`,
+        func: (e) => {
+          Store.changePWShow = true;
+          router.push({
+            name: "userInfo",
+            query: { closeIcon: true },
+          });
+        },
+      };
+    } else {
+      router.push({
+        name: "Lobby",
+      });
+      // .then(() => {
+      //   if (router.currentRoute.value.name !== "Lobby") {
+      //     router.go(0);
+      //   }
+      // });
+    }
+  } else {
+    Store.loadingSpinner = false;
+    normalLoginBtnText.value = "登入";
+    errorText.value = res.desc;
+  }
+  // } catch {
+  //   (e) => {
+  //     Store.loadingSpinner = false;
+  //     normalLoginBtnText.value = "登入";
+  //     errorText.value = "登入失敗";
+  //   };
+  // }
 };
 
 const getResetLogin = computed(() => {
   return Store.resetLogin;
 });
+
 watch(getResetLogin, () => {
   adNum.value = "";
   mima.value = "";

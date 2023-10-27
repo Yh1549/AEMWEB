@@ -13,7 +13,7 @@
         >的角色列表
       </p>
       <div v-if="userStore.userRoleList.length == 0">
-        <span>無腳色</span>
+        <span>無角色</span>
       </div>
       <div v-else class="w-full flex flex-wrap gap-2">
         <div
@@ -121,7 +121,7 @@
     </loadSpinner>
     <div v-if="Store.getSvcAuth('UpdateUser')" class="flex justify-center mt-4">
       <button class="btn btnClick bg-cancel mr-8" @click="resetUserRole">
-        重置
+        取消變更
       </button>
       <button class="btn btnClick bg-primaryDark ml-8" @click="createCaseRole">
         儲存變更
@@ -177,9 +177,19 @@ const CreateAndUpdateEmpCaseRole = async () => {
     refreshCaseRole();
   } else {
     commonStore.SvcFail.msg = res.desc;
-    router.push({
-      name: "SvcFail",
-    });
+    if (res.code == "AMS208") {
+      Store.alertShow = true;
+      Store.alertObj = {
+        msg:
+          commonStore.SvcFail.msg +
+          "。如果仍要新增，請清除「建檔流程」裡的權限。",
+        func: async (e) => {},
+      };
+    } else {
+      router.push({
+        name: "SvcFail",
+      });
+    }
   }
   Store.loadingSpinner = false;
 };
@@ -210,7 +220,7 @@ const currentFlow = computed(() => {
 const resetUserRole = () => {
   Store.alertShow = true;
   Store.alertObj = {
-    msg: `確定重置「${userStore.userEdit.name}」的審核角色嗎？您所做的變更不會被儲存`,
+    msg: `確定取消變更「${userStore.userEdit.name}」的審核角色嗎？`,
     func: async (e) => {
       if (e.target.value === "confirm") {
         await apiRequest

@@ -1,5 +1,5 @@
 <template>
-  <div class="p-2 w-full">
+  <div class="p-2 w-1/4 min-w-[280px]">
     <div
       class="py-4 bg-background rounded z-50 shadow-md relative border-2 border-primaryDark"
     >

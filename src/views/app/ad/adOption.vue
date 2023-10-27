@@ -8,11 +8,7 @@
         @change="getSelectSys"
       >
         <option disabled value="null">請選擇您所發布的系統</option>
-        <option
-          v-for="item in Store.postOption.System"
-          :key="item.name"
-          :value="item"
-        >
+        <option v-for="item in getSystemMemo" :key="item.name" :value="item">
           {{ item.memo }}
         </option>
       </select>
@@ -116,7 +112,7 @@
   <!-- 新增 -->
 </template>
 <script setup>
-import { onBeforeMount, ref } from "vue";
+import { computed, onBeforeMount, ref } from "vue";
 import apiRequest from "../../../api/apiRequest";
 import { findSysList } from "../../../api/service";
 import { useAdStore, useStore } from "../../../store/store";
@@ -127,6 +123,8 @@ const selectedSys = ref(null);
 const blockList = ref(null);
 const createPanel = ref(null);
 const adBlockList = ref([]);
+const sysList = ref("");
+const fullSysList = ref("");
 //
 const newAdvertiseArea = ref({
   system: null,
@@ -225,8 +223,23 @@ const createAdvertiseBlock = () => {
     },
   };
 };
+const getSystemMemo = computed(() => {
+  let array = [];
+  for (let sys of fullSysList.value) {
+    for (let value of sysList.value) {
+      if (sys.name == value) {
+        array.push(sys);
+      }
+    }
+  }
+  return array;
+});
 onBeforeMount(async () => {
   adStore.$reset();
   await findSysList();
+  fullSysList.value = JSON.parse(sessionStorage.getItem("SysList"));
+  await apiRequest.post("FindUserSystem", {}).then((res) => {
+    sysList.value = res.resBody.system;
+  });
 });
 </script>

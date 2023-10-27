@@ -1,6 +1,12 @@
 <template>
   <div class="w-full relative">
-    <button class="btn absolute right-0" @click="startNew">新增+</button>
+    <button
+      v-if="Store.getSvcAuth('CreateDept')"
+      class="btn absolute right-0"
+      @click="startNew"
+    >
+      新增+
+    </button>
     <listTable>
       <template #th>
         <th>單位代碼</th>
@@ -10,19 +16,21 @@
         <th>編輯選項</th>
       </template>
       <template #td>
-        <tr v-for="item in Store.postOption.Unit" :key="item">
+        <tr v-for="item in unitList" :key="item">
           <td>{{ item.code }}</td>
           <td>{{ item.name }}</td>
           <td>{{ item.unit }}</td>
           <td>{{ item.memo }}</td>
           <td class="flex gap-2">
             <button
+              v-if="Store.getSvcAuth('UpdateDept')"
               class="rounded w-8 h-8 bg-primaryDark"
               @click="startEdit(item)"
             >
               <i class="fa-solid fa-gear text-white"></i>
             </button>
             <button
+              v-if="Store.getSvcAuth('DeleteDept')"
               class="rounded w-8 h-8 bg-cancel"
               :value="item.code"
               @click="deleteUnit($event)"
@@ -89,16 +97,14 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import {
-  SelectDept,
-  createDept,
-  deleteDept,
-  updateDept,
-} from "../../api/service";
+import { onBeforeMount, ref } from "vue";
+import apiRequest from "../../api/apiRequest";
+import { createDept, deleteDept, updateDept } from "../../api/service";
 import { useStore } from "../../store/store";
 import listTable from "../listTable.vue";
+
 const Store = useStore();
+const unitList = ref([]);
 const dialogStatus = ref("");
 const editDialog = ref(null);
 const alert = ref(null);
@@ -136,7 +142,7 @@ const editUnit = async () => {
   } else {
     alertMsg.value = "修改失敗";
   }
-  await SelectDept();
+  selectDept();
 };
 
 const startNew = () => {
@@ -145,10 +151,11 @@ const startNew = () => {
 };
 
 const newUnit = async () => {
-  let code = unitUpdate.value.code,
-    name = unitUpdate.value.name,
-    unit = unitUpdate.value.unit;
-  const res = await createDept({ code, name, unit });
+  const res = await createDept({
+    code: unitUpdate.value.code,
+    name: unitUpdate.value.name,
+    unit: unitUpdate.value.unit,
+  });
   alert.value.showModal();
   editDialog.value.close();
   if (res.desc == "successful") {
@@ -157,7 +164,7 @@ const newUnit = async () => {
   } else {
     alertMsg.value = "新增失敗";
   }
-  await SelectDept();
+  selectDept();
 };
 const update = () => {
   if (dialogStatus.value == "edit") {
@@ -178,6 +185,20 @@ const deleteUnit = async (e) => {
   } else {
     alertMsg.value = "刪除失敗";
   }
-  await SelectDept();
+  selectDept();
 };
+const selectDept = async () => {
+  if (sessionStorage.getItem("deptList")) {
+    unitList.value = JSON.parse(sessionStorage.getItem("deptList"));
+  } else {
+    let res = await apiRequest.post("SelectDept", {});
+    if (res.desc == "successful") {
+      sessionStorage.setItem("deptList", JSON.stringify(res.resBody.deptList));
+      unitList.value = res.resBody.deptList;
+    }
+  }
+};
+onBeforeMount(async () => {
+  selectDept();
+});
 </script>

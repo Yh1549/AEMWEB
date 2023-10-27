@@ -7,7 +7,7 @@
     <loadSpinner v-if="Store.loadingSpinner">
       <template #title>儲存中</template>
     </loadSpinner>
-    <form v-else class="flex flex-col gap-2 items-center">
+    <form v-else class="flex flex-col gap-2 items-center py-2">
       <div class="h-24">
         <p>舊密碼 :</p>
         <label class="inpLabel w-full">
@@ -52,6 +52,13 @@
           >{{ changePWList.checkPw.msg }}</inputErrorMsg
         >
       </div>
+      <span class="text-primaryDark font-bold">
+        *需為6~12碼，至少包含1個英文大寫字母、1個英文小寫字母
+        、以及1個數字</span
+      >
+      <p class="h-8 text-cancel font-bold text-center" v-if="alertMsg != null">
+        <i class="fa-solid fa-circle-exclamation"></i>{{ alertMsg }}
+      </p>
       <div class="flex gap-8 my-2">
         <button
           v-if="closeBtnShow"
@@ -64,10 +71,6 @@
         <button class="btn bg-submit" @click="changePw">儲存變更</button>
       </div>
     </form>
-    <p class="h-8 text-cancel font-bold text-center">
-      <i v-if="alertMsg != null" class="fa-solid fa-circle-exclamation"></i
-      >{{ alertMsg }}
-    </p>
   </dialog>
   <button class="btn" @click="dialog.showModal()">更改密碼</button>
 </template>

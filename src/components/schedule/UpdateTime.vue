@@ -14,12 +14,10 @@
         <label class="inpLabel col-span-2">
           <input
             type="text"
-            name="tiggerTime"
-            data-valid-option="notNull,cronTimeLastWord"
             placeholder="* /50 * * * * ?"
             class="w-full inp block col-span-2"
             v-model="cronTime"
-            @keyup="InputValidation(Store.scheduleCheckTime, $event)"
+            v-verify:[cronTimeValidArg]="scheduleCheckingList.cronTime"
         /></label>
       </li>
       <button
@@ -42,27 +40,22 @@ import { useStore } from "../../store/store";
 const Store = useStore();
 const commonStore = useCommonStore();
 const props = defineProps(["triggerName"]);
-const errorMsg = ref("");
 const cronTime = ref("");
-const changeTime = (name, time) => {
-  let pass = false;
-  if (Store.scheduleCheckTime["tiggerTime"] != null) {
-    for (let i of Store.scheduleCheckTime["tiggerTime"]) {
-      if (i.result === false) {
-        pass = false;
-        errorMsg.value = i.msg;
-        wrongInfo("cronTime");
-        break;
-      } else {
-        pass = true;
-      }
+const cronTimeValidArg = ["notNull", "cronTimeLastWord"];
+const scheduleCheckingList = ref({
+  cronTime: { pass: null, msg: null },
+});
+
+const validCheck = () => {
+  for (let item in scheduleCheckingList.value) {
+    if (scheduleCheckingList.value[item].pass != true) {
+      return false;
     }
-  } else {
-    pass = false;
-    errorMsg.value = "不可為空";
-    wrongInfo("cronTime");
   }
-  if (pass === true) {
+  return true;
+};
+const changeTime = (name, time) => {
+  if (validCheck()) {
     Store.alertShow = true;
     Store.alertObj = {
       msg: "確定設定？",
@@ -82,23 +75,12 @@ const changeTime = (name, time) => {
         }
       },
     };
+  } else {
+    Store.alertShow = true;
+    Store.alertObj = {
+      msg: "請重新確認資料",
+      func: (e) => {},
+    };
   }
-};
-const wrongInfo = (name) => {
-  let msgObj = {
-    jobName: "jobName",
-    triggerName: "排程名稱",
-    triggerGroup: "排程群組",
-    cronTime: "觸發時間",
-    triggerFlag: "排程狀態",
-  };
-  for (let i = 0; i < Object.keys(msgObj).length; i++) {
-    if (Object.keys(msgObj)[i] == name) {
-      Store.alertObj.msg = Object.values(msgObj)[i] + " " + errorMsg.value;
-      break;
-    }
-  }
-  Store.alertShow = true;
-  Store.alertObj.func = (e) => {};
 };
 </script>

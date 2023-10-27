@@ -2,7 +2,7 @@
   <div class="my-2">
     <div class="flex gap-8 items-center my-4">
       <div class="flex-initial w-72">
-        <span class="block font-bold"> 權重 : </span>
+        <span class="block font-bold"> 是否置頂 : </span>
         <span class="inp">
           {{ props.newPost.top == 1 ? "置頂" : "不置頂" }}
         </span>
@@ -14,27 +14,22 @@
         </span>
       </div>
     </div>
-    <div class="flex gap-8 items-center my-4">
+    <div class="flex gap-8 items-center my-4 flex-wrap">
       <div class="flex-initial w-72">
         <span class="block font-bold">發布系統 :</span>
         <div class="rounded text-white bg-primaryDark my-2 py-2 shadow-lg">
-          <span class="block font-bold text-sm ml-2">{{
-            poststore.getRelSys(props.newPost, "name")
-          }}</span>
+          <span class="block font-bold text-sm ml-2">{{ system.name }}</span>
           <span class="block text-2xl font-bold ml-2">
-            {{ poststore.getRelSys(props.newPost, "memo") }}
+            {{ system.memo }}
           </span>
         </div>
       </div>
-      <div class="flex-initial w-72">
-        <span class="block font-bold">類別 :</span>
-        <div class="text-white my-2 py-2 rounded bg-primaryDark shadow-lg">
-          <span class="block font-bold text-sm ml-2">{{
-            poststore.getTag(props.newPost, "name")
-          }}</span>
-          <span class="font-bold text-2xl ml-2">{{
-            poststore.getTag(props.newPost, "memo")
-          }}</span>
+      <div class="flex-initial">
+        <span class="block font-bold">群組 :</span>
+        <div class="flex gap-2 flex-wrap">
+          <div v-for="item in tagList" class="inpLabel">
+            <span>{{ item.memo }}/{{ item.name }}</span>
+          </div>
         </div>
       </div>
       <div class="flex-initial w-72">
@@ -67,53 +62,44 @@
       </p>
     </div>
     <span for="textArea" class="block font-bold"> 內文 : </span>
-    <p
-      ref="content"
+    <div
+      v-html="props.newPost.content"
       class="tiptapStyle p-2 w-full bg-white whitespace-pre-line rounded"
-    ></p>
+    ></div>
   </div>
   <div class="flex justify-center my-8">
-    <button
-      @click="poststore.newPostStep = 'postnewWrite'"
-      class="btn btnClick mr-8"
-    >
-      上一步
-    </button>
+    <button @click="toWriteEmit" class="btn btnClick mr-8">上一步</button>
     <button @click="sendNewPostInfo" class="btn btnClick bg-submit">
       確認送出
     </button>
   </div>
 </template>
 <script setup>
-import { ref } from "@vue/reactivity";
-import { onMounted } from "@vue/runtime-core";
-import { useRoute, useRouter } from "vue-router";
+import { ref, watchEffect } from "vue";
+import { useRouter } from "vue-router";
 import apiRequest from "../../api/apiRequest";
-import { FindCaseFlowAndDetail } from "../../api/service";
 import { useCommonStore } from "../../store/commonStore";
-import { useFlowStore, usePostStore, useStore } from "../../store/store";
+import { useFlowStore, useStore } from "../../store/store";
 
-const route = useRoute();
 const router = useRouter();
 const store = useStore();
-const poststore = usePostStore();
 const flowStore = useFlowStore();
 const commonStore = useCommonStore();
 const content = ref(null);
-const props = defineProps(["newPost"]);
-
+const tagList = ref([]);
+const emit = defineEmits(["toWrite"]);
+const props = defineProps(["newPost", "fullInfo"]);
+const system = ref("");
 let sendNewPostInfo = () => {
   store.alertShow = true;
   store.alertObj = {
     msg: "確定傳送公告？",
     func: async (e) => {
       if (e.target.value === "confirm") {
-        store.loadingSpinner = true;
         // 建立公告
         await apiRequest
           .post("CreatePost", props.newPost)
           .then((res) => {
-            store.loadingSpinner = false;
             if (res.desc == "successful") {
               store.routerPush = "postAll";
               router.push({ name: "SvcSucess" });
@@ -122,14 +108,28 @@ let sendNewPostInfo = () => {
               router.push({ name: "SvcFail" });
             }
           })
-          .catch();
+          .catch((e) => {});
       }
     },
   };
 };
-
-onMounted(async () => {
-  content.value.innerHTML = props.newPost.content;
-  await FindCaseFlowAndDetail(props.newPost.flow);
+watchEffect(() => {
+  for (let item of JSON.parse(sessionStorage.getItem("SysList"))) {
+    if (item.name == props.newPost.relSys) {
+      system.value = item;
+    }
+  }
 });
+watchEffect(() => {
+  for (let item of props.fullInfo.tag) {
+    for (let value of props.newPost.tag) {
+      if (item.name == value) {
+        tagList.value.push(item);
+      }
+    }
+  }
+});
+const toWriteEmit = () => {
+  emit("toWrite", "write");
+};
 </script>

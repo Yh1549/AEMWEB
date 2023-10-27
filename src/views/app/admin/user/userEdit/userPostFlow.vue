@@ -19,7 +19,7 @@
             ? 'border-primaryDark bg-secondaryLight/50'
             : 'border-primaryLight'
         "
-        v-for="flow in flowStore.caseflow"
+        v-for="flow in flowList"
       >
         <div class="flex">
           <span
@@ -53,8 +53,8 @@
       <template #title>儲存中</template>
     </loadSpinner>
     <div v-if="Store.getSvcAuth('UpdateUser')" class="flex justify-center mt-8">
-      <button class="btn btnClick bg-cancel/70 mr-8" @click="resetUserCaseFlow">
-        重置
+      <button class="btn btnClick bg-cancel mr-8" @click="resetUserCaseFlow">
+        取消變更
       </button>
       <button
         class="btn btnClick bg-primaryDark ml-8"
@@ -69,24 +69,15 @@
 import { onBeforeMount, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import apiRequest from "../../../../../api/apiRequest";
-import {
-  FindAllCaseFlowAndDetail,
-  FindEmpCaseFlowForEdit,
-} from "../../../../../api/service";
 import caseCard from "../../../../../components/CaseCard.vue";
 import { useCommonStore } from "../../../../../store/commonStore";
-import {
-  useFlowStore,
-  useStore,
-  useUserStore,
-} from "../../../../../store/store";
+import { useStore, useUserStore } from "../../../../../store/store";
 const Store = useStore();
-const flowStore = useFlowStore();
 const userStore = useUserStore();
 const commonStore = useCommonStore();
 const route = useRoute();
 const router = useRouter();
-
+const flowList = ref([]);
 const userCaseFlow = ref([]);
 const updateUserCaseFlow = async () => {
   Store.alertShow = true;
@@ -95,25 +86,31 @@ const updateUserCaseFlow = async () => {
     func: async (e) => {
       if (e.target.value === "confirm") {
         Store.loadingSpinner = true;
-        await apiRequest
-          .post("CreateAndUpdateEmpCaseFlow", {
-            empId: route.params.userId,
-            choiceCaseFlowList: userCaseFlow.value,
-          })
-          .then((res) => {
-            Store.loadingSpinner = false;
-            if (res.desc == "successful") {
-              router.push({
-                name: "SvcSucess",
-              });
-            } else {
-              commonStore.SvcFail.msg = res.desc;
-              router.push({
-                name: "SvcFail",
-              });
-            }
-          })
-          .catch();
+        const res = await apiRequest.post("CreateAndUpdateEmpCaseFlow", {
+          empId: route.params.userId,
+          choiceCaseFlowList: userCaseFlow.value,
+        });
+        Store.loadingSpinner = false;
+        if (res.desc == "successful") {
+          router.push({
+            name: "SvcSucess",
+          });
+        } else {
+          commonStore.SvcFail.msg = res.desc;
+          if (res.code == "AMS208") {
+            Store.alertShow = true;
+            Store.alertObj = {
+              msg:
+                commonStore.SvcFail.msg +
+                "。如果仍要新增，請清除「審核角色」裡的權限。",
+              func: async (e) => {},
+            };
+          } else {
+            router.push({
+              name: "SvcFail",
+            });
+          }
+        }
       }
     },
   };
@@ -121,17 +118,33 @@ const updateUserCaseFlow = async () => {
 const resetUserCaseFlow = async () => {
   Store.alertShow = true;
   Store.alertObj = {
-    msg: `確定重置「${userStore.userEdit.name}」的建檔流程嗎？您所做的變更不會被儲存`,
+    msg: `確定取消變更「${userStore.userEdit.name}」的建檔流程嗎？`,
     func: async (e) => {
       if (e.target.value === "confirm") {
-        await FindEmpCaseFlowForEdit(userStore.userEdit.empid);
+        const caseRes = await apiRequest.post("FindEmpCaseFlowForEdit", {
+          empId: userStore.userEdit.empid,
+        });
+        if (caseRes.desc == "successful") {
+          useUserStore().caseFlow = caseRes.resBody.userCaseFlowList;
+          userCaseFlow.value = userStore.caseFlow;
+        }
       }
     },
   };
 };
 onBeforeMount(async () => {
-  await FindAllCaseFlowAndDetail();
-  await FindEmpCaseFlowForEdit(route.params.userId);
-  userCaseFlow.value = userStore.caseFlow;
+  const res = await apiRequest.post("FindEmpCanApplyFlow", {
+    empId: route.params.userId,
+  });
+  if (res.desc == "successful") {
+    flowList.value = res.resBody.flowList;
+  }
+  const caseRes = await apiRequest.post("FindEmpCaseFlowForEdit", {
+    empId: route.params.userId,
+  });
+  if (caseRes.desc == "successful") {
+    useUserStore().caseFlow = caseRes.resBody.userCaseFlowList;
+    userCaseFlow.value = userStore.caseFlow;
+  }
 });
 </script>

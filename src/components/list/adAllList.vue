@@ -1,10 +1,6 @@
 <template>
   <div class="flex flex-wrap">
-    <div
-      v-for="item in Store.pageData.pager"
-      class="w-full p-2 md:w-4/16"
-      :key="item"
-    >
+    <div v-for="item in getPage" class="w-full p-2 md:w-4/16" :key="item">
       <div class="flex justify-center h-40 overflow-hidden">
         <div class="w-full">
           <img
@@ -36,7 +32,8 @@
               ></div>
               {{ commonStore.getCaseStatusName(item.status)?.title }}</span
             ><span class="bg-primaryDark text-white rounded font-bold p-1 mx-1">
-              {{ Store.getRelSys(item.system) }}
+              {{ Store.getRelSys(item.system).memo }}/
+              {{ Store.getRelSys(item.system).name }}
             </span>
             <span
               class="bg-secondaryDark text-white rounded font-bold p-1 mx-1"
@@ -73,7 +70,7 @@
   </div>
 </template>
 <script setup>
-import { onBeforeUnmount } from "vue";
+import { computed, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { useCommonStore } from "../../store/commonStore";
 import { useAdStore, useStore } from "../../store/store";
@@ -81,6 +78,7 @@ const router = useRouter();
 const Store = useStore();
 const adStore = useAdStore();
 const commonStore = useCommonStore();
+const props = defineProps(["List"]);
 const adTitle = (title) => {
   if (title.length > 35) {
     return title.slice(0, 35) + "...";
@@ -97,8 +95,11 @@ const advertiseDetail = (uuid, category) => {
     },
   });
 };
-onBeforeUnmount(() => {
+const getPage = computed(() => {
   Store.pageData.pager = adStore.List;
+  return Store.pageData.pager;
+});
+onBeforeUnmount(() => {
   Store.pageData.pageCurrent = 1;
   Store.pageData.pageSize = 20;
 });

@@ -112,9 +112,9 @@ const router = useRouter();
 const dialogOption = ref(null);
 // const dialogUnitOption = ref(null);
 const dialogPage = ref("");
-const createUser = () => {
-  router.push("/createUser");
-};
+// const createUser = () => {
+//   router.push("/createUser");
+// };
 const userExist = () => {
   if (Store.pageRender.length != 0) {
     return true;

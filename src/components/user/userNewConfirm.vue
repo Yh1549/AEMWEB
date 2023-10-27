@@ -35,16 +35,7 @@
     </div>
   </div>
   <div class="flex justify-evenly mb-8">
-    <button
-      class="btn btnClick bg-primaryDark"
-      @click="
-        if (userStore.userRangeValid) {
-          Store.currentNewStep = 'userNewRange';
-        } else {
-          Store.currentNewStep = 'usernewAuth';
-        }
-      "
-    >
+    <button class="btn btnClick bg-primaryDark" @click="prevStep">
       上一步
     </button>
     <button class="btn btnClick bg-submit" @click="CreateUser">確認新增</button>
@@ -63,7 +54,7 @@ const commonStore = useCommonStore();
 
 const router = useRouter();
 const props = defineProps(["newUser"]);
-const emit = defineEmits(["newUserConfirm"]);
+const emit = defineEmits(["toNext"]);
 
 const RangeOrNot = computed(() => {
   if (props.newUser.range?.length != 0) {
@@ -102,6 +93,13 @@ const infoObj = ref({
 
 provide("infoObj", infoObj.value);
 
+const prevStep = () => {
+  if (userStore.userRangeValid) {
+    emit("toNext", props.newUser, "range");
+  } else {
+    emit("toNext", props.newUser, "auth");
+  }
+};
 const CreateUser = () => {
   Store.alertShow = true;
   Store.alertObj = {

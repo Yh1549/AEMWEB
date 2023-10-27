@@ -2,7 +2,8 @@
   <div class="w-full p-2">
     <formRow class="w-3/4 mx-auto">
       <formRowItem :width="'w-full'">
-        <span class="font-bold block">標題 :</span>
+        <span class="text-cancel font-bold">*</span>
+        <span class="font-bold">標題 :</span>
         <label class="inpLabel w-full">
           <input
             type="text"
@@ -16,40 +17,47 @@
     </formRow>
     <div class="w-3/4 mx-auto">
       <p class="font-bold">
-        日期/時間:<span class="mx-2">{{ props.data.startDate }}</span>
+        原定上線日期:<span class="mx-2"
+          >{{ props.data.startDate }}～{{
+            props.data.endDate == "2099-01-01 00:00"
+              ? "永久上線"
+              : props.data.endDate
+          }}</span
+        >
       </p>
     </div>
     <formRow class="w-3/4 mx-auto">
       <formRowItem :width="'w-1/2'">
-        <p class="mb-2">上線日期/時間:</p>
+        <div class="flex">
+          <span class="text-cancel font-bold">*</span>
+          <p class="mb-2">上線日期/時間:</p>
+        </div>
         <div class="flex gap-2">
           <label class="inpLabel w-1/2 self-center">
             <input
               type="date"
               class="inp w-full"
-              :min="Store.getToday()"
+              :min="inputStartDate()"
               :max="updateAd.endDate"
               v-model="startDate"
             />
           </label>
           <label class="inpLabel w-1/2 self-center">
-            <input
-              type="time"
-              class="inp w-full"
-              v-model="startTime"
-              @change="buildStartTime"
-            />
+            <input type="time" class="inp w-full" v-model="startTime" />
           </label>
         </div>
       </formRowItem>
       <formRowItem :width="'w-1/2'">
         <div class="flex gap-2 mb-2">
-          <span>下線日期/時間:</span>
+          <span>
+            <span class="text-cancel font-bold">*</span>下線日期/時間:
+          </span>
           <input
             id="toggleSwicthInput"
             class="hidden"
             type="checkbox"
             v-model="permanentToggle"
+            @click="buildEndTime"
           />
           <label for="toggleSwicthInput" class="toggleSwicth"></label>
           <span> 永久上線{{ permanentToggle ? "開啟" : "關閉" }} </span>
@@ -70,7 +78,6 @@
               class="inp w-full"
               :disabled="permanentToggle"
               v-model="endTime"
-              @change="buildEndTime"
             />
           </label>
         </div>
@@ -78,7 +85,9 @@
     </formRow>
     <formRow class="w-3/4 mx-auto">
       <formRowItem>
-        <p class="font-bold">區塊 :</p>
+        <p class="font-bold">
+          <span class="text-cancel font-bold">*</span>區塊 :
+        </p>
         <label class="inpLabel w-full">
           <select class="w-full inp" v-model="updateAd.block">
             <option
@@ -86,7 +95,7 @@
               :key="item.block"
               :value="item.block"
             >
-              {{ item.memo }}
+              {{ item.memo }}/{{ item.block }}
             </option>
           </select>
         </label>
@@ -100,16 +109,18 @@
             type="text"
             class="w-full inp"
             :placeholder="props.data.link"
+            v-verify:[linkValidArg]="adUpdateChecking.link"
             v-model="updateAd.link"
           />
-        </label> </formRowItem
-    ></formRow>
-    <div
-      class="p-2 w-3/4 mx-auto flex justify-between border-2 border-primaryDark rounded min-h-[100px]"
+        </label>
+        <inputErrorMsg v-if="adUpdateChecking.link.pass == false">{{
+          adUpdateChecking.link.msg
+        }}</inputErrorMsg></formRowItem
+      ></formRow
     >
-      <button class="btn self-center" @click="$refs.photo.click()">
-        上傳圖片
-      </button>
+    <div
+      class="p-2 w-3/4 mx-auto flex flex-col justify-center border-2 border-primaryDark rounded min-h-[100px]"
+    >
       <div class="w-full flex items-center justify-center">
         <div v-if="updateAd.photo" class="overflow-scroll flex justify-center">
           <img class="w-full" :src="`data:image;base64,${updateAd.photo}`" />
@@ -124,9 +135,14 @@
           ref="photo"
         />
       </label>
+      <button class="btn self-center" @click="$refs.photo.click()">
+        上傳圖片
+      </button>
     </div>
-    <div class="w-3/4 mx-auto p-2 my-4">
-      <Tiptap v-model="updateAd.content"></Tiptap>
+    <div class="w-3/4 mx-auto py-2 my-4">
+      <span class="text-cancel font-bold">*</span>
+      <span class="font-bold">內文 :</span>
+      <Tiptap class="tiptapStyle" v-model="updateAd.content"></Tiptap>
     </div>
   </div>
   <div class="flex justify-center">
@@ -141,14 +157,15 @@ import { useStore } from "../../store/store";
 import Tiptap from "../Tiptap/Tiptap.vue";
 import formRow from "../formRow.vue";
 import formRowItem from "../formRowItem.vue";
+import inputErrorMsg from "../inputErrorMsg.vue";
 
 const Store = useStore();
 
 const route = useRoute();
 const router = useRouter();
 const props = defineProps(["data"]);
-const startDate = ref("");
-const startTime = ref("");
+const startDate = ref(props.data.startDate.split(" ")[0]);
+const startTime = ref(props.data.startDate.split(" ")[1]);
 const endDate = ref("");
 const endTime = ref("");
 //
@@ -157,7 +174,7 @@ const updateAd = ref({
   uuid: props.data.uuid,
   title: props.data.title,
   content: props.data.content,
-  startDate: props.data.startDate,
+  startDate: props.data.startDate + ":00",
   endDate: props.data.endDate + ":00",
   photo: props.data.photo,
   link: props.data.link,
@@ -166,10 +183,17 @@ const updateAd = ref({
 const adUpdateChecking = ref({
   title: { pass: true, msg: null },
   // content: { pass: null, msg: null },
+  link: { pass: true, msg: null },
 });
 const titleValidArg = ["notNull", "charMax(64)"];
-//
+const linkValidArg = ["link"];
 const permanentToggle = ref(false);
+
+permanentToggle.value = props.data.endDate === "2099-01-01 00:00";
+if (!permanentToggle.value) {
+  endDate.value = props.data.endDate.split(" ")[0];
+  endTime.value = props.data.endDate.split(" ")[1];
+}
 
 const adReader = (file) => {
   let Reader = new FileReader();
@@ -188,6 +212,7 @@ const adReader = (file) => {
   };
   Reader.readAsDataURL(file);
 };
+
 const adImgUpload = (e) => {
   if (e.target.files[0].size > 1000000) {
     Store.alertShow = true;
@@ -222,6 +247,14 @@ const findOneAd = async () => {
   }
 };
 const updateAdvertise = async () => {
+  updateAd.value.startDate = startDate.value + " " + startTime.value + ":00";
+  if (!endDate.value) {
+    endDate.value = "2099-01-01";
+  }
+  if (!endTime.value) {
+    endTime.value = "00:00";
+  }
+  updateAd.value.endDate = endDate.value + " " + endTime.value + ":00";
   let res = await apiRequest.post("UpdateAdvertise", updateAd.value);
   if (res.desc === "successful") {
     findOneAd();
@@ -229,7 +262,7 @@ const updateAdvertise = async () => {
     Store.loadingSpinner = false;
     Store.alertShow = true;
     Store.alertObj = {
-      msg: "變更失敗",
+      msg: res.desc,
       func: () => {},
     };
   }
@@ -244,6 +277,23 @@ const sendUpdateAd = (event) => {
     };
     return;
   }
+  if (startDate.value > endDate.value && endDate.value) {
+    Store.alertShow = true;
+    Store.alertObj = {
+      msg: "上下架時間有誤，請重新檢查",
+      func: (e) => {},
+    };
+    return;
+  } else if (startDate.value === endDate.value) {
+    if (startTime.value > endTime.value) {
+      Store.alertShow = true;
+      Store.alertObj = {
+        msg: "上下架時間有誤，請重新檢查",
+        func: (e) => {},
+      };
+    }
+    return;
+  }
   Store.alertShow = true;
   Store.alertObj = {
     msg: "確定修改?",
@@ -255,14 +305,22 @@ const sendUpdateAd = (event) => {
     },
   };
 };
-const buildStartTime = () => {
-  updateAd.value.startDate = startDate.value + " " + startTime.value + ":00";
-};
 const buildEndTime = () => {
-  updateAd.value.endDate = endDate.value + " " + endTime.value + ":00";
+  if (!permanentToggle.value) {
+    endDate.value = "";
+    endTime.value = "";
+  }
+};
+const inputStartDate = () => {
+  const today = Store.getToday();
+  if (startDate >= today) {
+    return today;
+  } else {
+    return startDate;
+  }
 };
 onBeforeMount(async () => {
-  if (props.data.endDate == "2099-01-01 00:00:00") {
+  if (props.data.endDate === "2099-01-01 00:00") {
     permanentToggle.value = true;
   }
   await apiRequest

@@ -10,7 +10,7 @@
       <no-result></no-result>
     </div>
     <div v-else>
-      <ApproveList></ApproveList>
+      <ApproveList toPag="history"></ApproveList>
       <page-control :pageName="resetPage"></page-control>
     </div>
   </div>

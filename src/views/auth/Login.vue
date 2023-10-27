@@ -6,7 +6,12 @@
   <normalLogin></normalLogin>
   <div class="block text-gray-600 font-bold text-sm text-center my-2">
     首次登入或信箱重置<br />請按
-    <button class="btn btnClick" @click="firstLogin">信箱設置</button>
+    <button
+      class="btnClick font-bold border-2 p-1 border-primaryDark rounded"
+      @click="firstLogin"
+    >
+      信箱設置
+    </button>
     <br /><span class="text-sm">沒有帳號或無法登入? 請聯絡資訊部 </span>
   </div>
   <!-- <button class="btn btnClick">QR code登入</button> -->

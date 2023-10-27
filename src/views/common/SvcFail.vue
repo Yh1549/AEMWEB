@@ -37,7 +37,7 @@ let autoReturn = () => {
       router.go(-1);
     }
     delete Store.routerPush;
-  }, 3000);
+  }, 5000);
 };
 onMounted(() => {
   autoReturn();

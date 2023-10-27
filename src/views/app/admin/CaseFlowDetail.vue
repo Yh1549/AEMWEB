@@ -4,7 +4,10 @@
       <span class="text-2xl font-bold mr-2">審核流程</span>
 
       <span class="font-bold mx-2 bg-secondaryLight rounded px-2">
-        {{ Store.getRelSys(flowStore.caseDetail.relSys) }}
+        {{ Store.getRelSys(flowStore.caseDetail.relSys).memo }}/{{
+          Store.getRelSys(flowStore.caseDetail.relSys).name
+        }}
+        <span class="text-sm">{{ flowStore.caseDetail.relSys }}</span>
       </span>
       <span class="font-bold bg-background rounded px-2">{{
         commonStore.caseType[flowStore.caseDetail?.type]?.title

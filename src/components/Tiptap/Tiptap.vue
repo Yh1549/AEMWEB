@@ -23,6 +23,95 @@
         :buttonFunction="() => editor.chain().focus().toggleUnderline().run()"
       />
       <span class="line">|</span>
+      <div
+        class="relative"
+        @mouseenter="textColorMenu = true"
+        @mouseleave="textColorMenu = false"
+      >
+        <menu-button
+          icon-class="fa-solid fa-font border-b-4 border-black"
+          :icon-style="editor.getAttributes('textStyle').color"
+          @click="textColorMenu = true"
+        />
+        <div v-show="textColorMenu" class="tiptapMenu -left-16">
+          <input
+            class="flex justify-center self-center"
+            type="color"
+            @input="editor.chain().focus().setColor($event.target.value).run()"
+            :value="editor.getAttributes('textStyle').color"
+          />
+          <menu-button
+            textSm="RED"
+            :class="
+              !editor.isActive('textStyle', {
+                color: '#DA100B',
+              })
+                ? 'text-cancel'
+                : 'bg-cancel text-white'
+            "
+            :buttonFunction="
+              () => editor.chain().focus().setColor('#DA100B').run()
+            "
+          />
+          <menu-button
+            textSm="BLUE"
+            :class="
+              !editor.isActive('textStyle', { color: '#0000CD' })
+                ? 'text-[#0000CD]'
+                : 'bg-[#0000CD] text-white'
+            "
+            :buttonFunction="
+              () => editor.chain().focus().setColor('#0000CD').run()
+            "
+          />
+          <menu-button
+            class="hover:bg-black hover:text-white"
+            textSm="清除"
+            :buttonFunction="() => editor.chain().focus().unsetColor().run()"
+          />
+        </div>
+      </div>
+      <div
+        class="relative"
+        @mouseenter="highlightMenu = true"
+        @mouseleave="highlightMenu = false"
+      >
+        <menu-button
+          icon-class="fa-solid fa-highlighter border-b-4 border-black"
+          :icon-style="highlightColor"
+          :isActive="editor.isActive('highlight')"
+          :buttonFunction="
+            () =>
+              editor
+                .chain()
+                .focus()
+                .toggleHighlight({ color: highlightColor })
+                .run()
+          "
+        />
+        <div v-show="highlightMenu" class="tiptapMenu -left-6">
+          <input
+            class="flex justify-center self-center"
+            type="color"
+            v-model="highlightColor"
+            @input="
+              editor
+                .chain()
+                .focus()
+                .toggleHighlight({ color: highlightColor })
+                .run()
+            "
+          />
+          <menu-button
+            class="hover:bg-black hover:text-white"
+            textSm="清除"
+            :buttonFunction="
+              () => editor.chain().focus().unsetHighlight().run()
+            "
+          />
+        </div>
+      </div>
+      <span class="line">|</span>
       <menu-button
         label="標題1"
         text="H1"
@@ -48,7 +137,7 @@
         "
       />
       <menu-button
-        label="段落?"
+        label="段落"
         icon-class="fa-solid fa-paragraph"
         :isActive="editor.isActive('paragraph')"
         :buttonFunction="() => editor.chain().focus().setParagraph().run()"
@@ -84,32 +173,62 @@
       <div v-if="editor.isActive('table')" class="flex">
         <menu-button
           label="新增欄"
-          :img="'/src/assets/column-add.png'"
+          :img="colAddImg"
           :buttonFunction="() => editor.chain().focus().addColumnAfter().run()"
         />
         <menu-button
           label="刪除欄"
-          :img="'/src/assets/delete-column.png'"
+          :img="colDelImg"
           :buttonFunction="() => editor.chain().focus().deleteColumn().run()"
         />
         <menu-button
           label="新增列"
-          :img="'/src/assets/row-add.png'"
+          :img="rowAddImg"
           :buttonFunction="() => editor.chain().focus().addRowAfter().run()"
         />
         <menu-button
           label="刪除列"
-          :img="'/src/assets/row-del.png'"
+          :img="rowDelImg"
           :buttonFunction="() => editor.chain().focus().deleteRow().run()"
         />
         <menu-button
           label="合併儲存格"
-          :img="'/src/assets/merge.png'"
+          :img="tableMergeImg"
           :buttonFunction="() => editor.chain().focus().mergeOrSplit().run()"
         />
+        <div
+          class="relative"
+          @mouseenter="tableBgMenu = true"
+          @mouseleave="tableBgMenu = false"
+        >
+          <menu-button
+            icon-class="fa-solid fa-fill-drip  border-b-4 border-white"
+            :icon-style="tableBg"
+            :buttonFunction="
+              () => editor.commands.setCellAttribute('backgroundColor', tableBg)
+            "
+          />
+          <div v-show="tableBgMenu" class="tiptapMenu -left-6">
+            <input
+              class="flex justify-center self-center"
+              type="color"
+              v-model="tableBg"
+              @input="
+                editor.commands.setCellAttribute('backgroundColor', tableBg)
+              "
+            />
+            <menu-button
+              class="hover:bg-black hover:text-white"
+              textSm="清除"
+              :buttonFunction="
+                () => editor.commands.setCellAttribute('backgroundColor', null)
+              "
+            />
+          </div>
+        </div>
         <menu-button
           label="刪除表格"
-          :img="'/src/assets/table-del.png'"
+          :img="tableDelImg"
           :buttonFunction="() => editor.chain().focus().deleteTable().run()"
         />
         <span class="line">|</span>
@@ -143,44 +262,13 @@
         :isActive="editor.isActive('link')"
         :buttonFunction="setLink"
       />
-      <input
-        class="flex justify-center self-center"
-        type="color"
-        @input="editor.chain().focus().setColor($event.target.value).run()"
-        :value="editor.getAttributes('textStyle').color"
-      />
-      <menu-button
-        textSm="RED"
-        :class="
-          !editor.isActive('textStyle', {
-            color: '#DA100B',
-          })
-            ? 'text-cancel'
-            : 'bg-cancel text-white'
-        "
-        :buttonFunction="() => editor.chain().focus().setColor('#DA100B').run()"
-      />
-      <menu-button
-        textSm="BLUE"
-        :class="
-          !editor.isActive('textStyle', { color: '#0000CD' })
-            ? 'text-[#0000CD]'
-            : 'bg-[#0000CD] text-white'
-        "
-        :buttonFunction="() => editor.chain().focus().setColor('#0000CD').run()"
-      />
-      <button
-        @click="editor.chain().focus().unsetColor().run()"
-        class="hover:bg-black hover:text-white rounded"
-      >
-        <span class="font-bold">取消顏色 </span>
-      </button>
     </div>
     <editor-content :editor="editor" />
   </div>
 </template>
 
 <script setup>
+import { ref } from "vue";
 import Color from "@tiptap/extension-color";
 import Link from "@tiptap/extension-link";
 import ListItem from "@tiptap/extension-list-item";
@@ -192,14 +280,68 @@ import TextAlign from "@tiptap/extension-text-align";
 import textStyle from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
+import Highlight from "@tiptap/extension-highlight";
 import { EditorContent, useEditor } from "@tiptap/vue-3";
 import menuButton from "./menuButton.vue";
+import colAddImg from "../../assets/column-add.png";
+import colDelImg from "../../assets/delete-column.png";
+import rowAddImg from "../../assets/row-add.png";
+import rowDelImg from "../../assets/row-del.png";
+import tableMergeImg from "../../assets/merge.png";
+import tableDelImg from "../../assets/table-del.png";
+const textColorMenu = ref(false);
+const highlightColor = ref("#ffff00");
+const highlightMenu = ref(false);
+const tableBgMenu = ref(false);
+const tableBg = ref("#FFFFFF");
 const props = defineProps({
   modelValue: {
     type: String,
     default: "",
   },
 });
+const exTableCell = TableCell.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      backgroundColor: {
+        default: null,
+        renderHTML: (attributes) => {
+          if (!attributes.backgroundColor) {
+            return {};
+          }
+
+          return {
+            style: `background-color: ${attributes.backgroundColor}`,
+          };
+        },
+        parseHTML: (element) => {
+          return element.style.backgroundColor.replace(/['"]+/g, "");
+        },
+      },
+    };
+  },
+});
+const exTableHeader = TableHeader.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      backgroundColor: {
+        default: null,
+        renderHTML: (attributes) => {
+          if (!attributes.backgroundColor) {
+            return {};
+          }
+          return { style: `background-color: ${attributes.backgroundColor}` };
+        },
+        parseHTML: (element) => {
+          return element.style.backgroundColor.replace(/['"]+/g, "");
+        },
+      },
+    };
+  },
+});
+
 const emit = defineEmits(["update:modelValue"]);
 const editor = useEditor({
   content: props.modelValue,
@@ -219,7 +361,9 @@ const editor = useEditor({
     TextAlign.configure({
       types: ["heading", "paragraph"],
     }),
-    ,
+    Highlight.configure({ multicolor: true }),
+    exTableCell,
+    exTableHeader,
   ],
   injectCSS: false,
   onUpdate: ({ editor }) => {
@@ -244,51 +388,14 @@ const setLink = () => {
   }
 };
 </script>
-<style scope>
-.ProseMirror {
-  @apply min-h-[200px] rounded-b p-2 outline-none border-4 border-primaryDark;
-}
-button {
-  @apply relative;
-}
-button .floatText {
-  @apply absolute w-16 text-center font-bold -top-[90%] -left-[50%] opacity-0 lg:inline-block py-1 z-20 text-sm transition-all pointer-events-none bg-primaryDark rounded text-white  hidden;
-}
-button:hover .floatText {
-  opacity: 1;
-}
+<style scoped>
 .line {
   @apply p-1 text-lg flex items-center text-primaryDark/50;
 }
-table {
-  @apply overflow-hidden;
+.tiptapMenu {
+  @apply absolute -top-14 flex bg-white border border-gray-300 rounded p-2 z-10 flex-row;
 }
-table th,
-table td {
-  @apply min-w-[3em] relative;
-}
-table th > *,
-table td > * {
-  @apply bottom-0;
-}
-table .selectedCell:after {
-  @apply absolute z-10 left-0 right-0 top-0 bottom-0 bg-secondaryLight/50;
-  content: "";
-  pointer-events: none;
-}
-table .column-resize-handle {
-  @apply absolute -right-0.5 top-0 h-screen w-1 bg-primaryLight/50 z-50 pointer-events-none;
-}
-table p {
-  margin: 0;
-}
-.tableWrapper {
-  @apply scrollbar overflow-x-auto py-2;
-}
-.resize-cursor {
-  @apply cursor-col-resize;
-}
-table th {
-  text-align: left;
+input {
+  @apply mr-1;
 }
 </style>

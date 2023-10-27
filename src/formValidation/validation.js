@@ -128,7 +128,7 @@ export const validation = {
   link: function (arg) {
     let reg =
       /^((ht|f)tps?):\/\/[\w\-]+(\.[\w\-]+)+([\w\-\.,@?^=%&:\/~\+#]*[\w\-\@?^=%&\/~\+#])?$/;
-    if (reg.test(arg)) {
+    if (reg.test(arg) || arg == '') {
       return {
         result: true,
         msg: "timeok",
@@ -136,7 +136,7 @@ export const validation = {
     } else {
       return {
         result: false,
-        msg: "連結格式有誤",
+        msg: "超連結格式有誤",
       };
     }
   },

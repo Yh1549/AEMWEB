@@ -38,14 +38,15 @@
         <td>
           {{ commonStore.caseType[approveCase.type]?.title }}
         </td>
-        <td>
-          {{
+        <td class="text-sm">
+          {{ approveCase.startTime }}
+          <!-- {{
             Store.dateReform(
               Store.timeReform(approveCase.startTime)[0],
               ".",
               "/"
             )
-          }}
+          }} -->
         </td>
         <td>{{ postTitle(approveCase.title, 40) }}</td>
         <td>
@@ -56,7 +57,11 @@
           >
         </td>
         <td>{{ approveCase.applicantName }}</td>
-        <td>{{ Store.getRelSys(approveCase.relSys) ?? "無" }}</td>
+        <td>
+          {{ Store.getRelSys(approveCase.relSys).memo ?? "無" }}/{{
+            Store.getRelSys(approveCase.relSys).name ?? "無"
+          }}
+        </td>
         <td v-if="postStore.historyCase">
           <span
             class="btn p-2"
@@ -87,6 +92,7 @@ const postStore = usePostStore();
 const commonStore = useCommonStore();
 const route = useRoute();
 const router = useRouter();
+const props = defineProps(["toPag"]);
 const postTitle = (title, max) => {
   if (title?.length > max) {
     return title.slice(0, max) + "...";
@@ -95,17 +101,21 @@ const postTitle = (title, max) => {
   }
 };
 const approveDetail = (caseUuid) => {
-  if (route.fullPath == "/approvehistory") {
-    Store.approveSign = false;
+  if (props.toPag == "all") {
+    router.push({
+      name: "approveDetail",
+      params: {
+        caseUuid,
+      },
+    });
   } else {
-    Store.approveSign = true;
+    router.push({
+      name: "approveHisDetail",
+      params: {
+        caseUuid,
+      },
+    });
   }
-  router.push({
-    name: "approveDetail",
-    params: {
-      caseUuid,
-    },
-  });
 };
 
 onBeforeUnmount(() => {

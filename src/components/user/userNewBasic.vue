@@ -38,6 +38,9 @@
     <formRow>
       <formRowItem :width="'w-1/2'">
         <span class="ml-2">密碼 :</span>
+          <inputErrorMsg v-if="newUserChecking.mima.pass == false">{{
+            newUserChecking.mima.msg
+          }}</inputErrorMsg>
         <label class="inpLabel w-full">
           <input
             class="inp w-full"
@@ -46,13 +49,15 @@
             v-verify:[mimaValidArg]="newUserChecking.mima"
             v-model="props.newUser.mima"
         /></label>
-        <span class="text-cancel font-bold">*請輸入6~12碼，英文數字混和</span>
-        <inputErrorMsg v-if="newUserChecking.mima.pass == false">{{
-          newUserChecking.mima.msg
-        }}</inputErrorMsg>
+        <span class="text-cancel font-bold whitespace-nowrap"
+          >*需為6~12碼，至少包含1個英文大寫字母、1個英文小寫字母、以及1個數字</span
+        >
       </formRowItem>
       <formRowItem :width="'w-1/2'">
         <span class="ml-2">確認密碼 :</span>
+        <inputErrorMsg v-if="newUserChecking.mimaDouble.pass == false">{{
+          newUserChecking.mimaDouble.msg
+        }}</inputErrorMsg>
         <label class="inpLabel w-full">
           <input
             class="inp w-full"
@@ -62,9 +67,6 @@
             @keyup="doubleCheck"
           />
         </label>
-        <inputErrorMsg v-if="newUserChecking.mimaDouble.pass == false">{{
-          newUserChecking.mimaDouble.msg
-        }}</inputErrorMsg>
       </formRowItem>
     </formRow>
     <formRow>
@@ -113,13 +115,14 @@
 </template>
 <script setup>
 import { ref } from "vue";
+import { checkValidList } from "../../formValidation/validTunnel";
 import { useStore } from "../../store/store";
 import formRow from "../formRow.vue";
 import formRowItem from "../formRowItem.vue";
 import inputErrorMsg from "../inputErrorMsg.vue";
 const Store = useStore();
 const props = defineProps(["newUser"]);
-const emit = defineEmits(["newUserConfirm"]);
+const emit = defineEmits(["toNext"]);
 const mimaDoubleCheck = ref(null);
 //
 const newUserChecking = ref({
@@ -147,17 +150,14 @@ const doubleCheck = () => {
 };
 
 const nextStep = () => {
-  for (let item in newUserChecking.value) {
-    if (newUserChecking.value[item].pass != true) {
-      Store.alertShow = true;
-      Store.alertObj = {
-        msg: `輸入有誤，請重新檢查`,
-        func: (e) => {},
-      };
-      return;
-    }
+  if (!checkValidList(newUserChecking.value)) {
+    Store.alertShow = true;
+    Store.alertObj = {
+      msg: `輸入有誤，請重新檢查`,
+      func: (e) => {},
+    };
+    return;
   }
-  emit("newUserConfirm", props.newUser);
-  Store.currentNewStep = "usernewAuth";
+  emit("toNext", props.newUser, "auth");
 };
 </script>

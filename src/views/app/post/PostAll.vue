@@ -1,10 +1,7 @@
 <template>
   <!-- 關鍵字搜尋 -->
-  <button
-    @click="togglePersonalPost"
-    class="bg-primaryDark rounded p-2 my-1 text-white fill-white font-bold hover:fill-primaryDark hover:bg-secondary hover:text-primaryDark hover:cursor-pointer"
-  >
-    目前列表為{{ personalPost ? "個人公告" : "所有公告" }}
+  <button @click="togglePersonalPost" class="btn my-2">
+    {{ personalPost ? "個人公告" : "所有公告" }}
   </button>
   <div class="md:flex items-center gap-2 bg-primary p-2 rounded-t">
     <label class="bg-white rounded border-2 border-primaryDark flex my-2 p-2">
@@ -26,7 +23,7 @@
         <select name="user" class="inp w-full" v-model="system">
           <option :value="undefined">-- 請選擇 --</option>
           <option v-for="i in sysList" :value="i" :key="i">
-            {{ i.memo }}
+            {{ i.memo }}/{{ i.name }}
           </option>
         </select>
       </label>

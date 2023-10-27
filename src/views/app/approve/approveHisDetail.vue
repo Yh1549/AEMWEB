@@ -64,27 +64,11 @@
       </div>
     </div>
     <caseDetailSign></caseDetailSign>
-    <div class="pb-8 mx-auto flex justify-evenly w-full">
-      <button
-        v-if="Store.getSvcAuth('RejectCase')"
-        class="btn btnClick w-1/4 md:w-1/6 bg-cancel font-bold"
-        @click="disapprove"
-      >
-        退件
-      </button>
-      <button
-        v-if="Store.getSvcAuth('CheckCaseAndRelease')"
-        class="btn btnClick w-1/4 md:w-1/6 bg-submit font-bold"
-        @click="approve"
-      >
-        通過審核並蓋章
-      </button>
-    </div>
   </div>
 </template>
 <script setup>
 import { onBeforeMount, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import apiRequest from "../../../api/apiRequest";
 import {
   CaseDetail,
@@ -102,58 +86,7 @@ const Store = useStore();
 const adStore = useAdStore();
 const route = useRoute();
 const sign = ref({});
-const router = useRouter();
-const id = route.params.caseUuid;
 sign.value = Store.caseSign;
-const disapprove = () => {
-  // 退件
-  Store.alertShow = true;
-  Store.alertObj = {
-    msg: "確定要退件嗎？",
-    func: async (e) => {
-      if (e.target.value === "confirm") {
-        apiRequest
-          .post("RejectCase", { caseUuid: id })
-          .then((res) => {
-            if (res.desc == "successful") {
-              Store.routerPush = "approveAll";
-              router.push({ name: "SvcSucess" });
-            } else {
-              commonStore.SvcFail.msg = res.desc;
-              router.push({ name: "SvcFail" });
-            }
-          })
-          .catch();
-      }
-    },
-  };
-};
-const approve = () => {
-  Store.alertShow = true;
-  Store.alertObj = {
-    msg: "確定要通過審核嗎？",
-    func: async (e) => {
-      if (e.target.value === "confirm") {
-        apiRequest
-          .post("CheckCaseAndRelease", { caseUuid: id })
-          .then((res) => {
-            if (res.desc == "successful") {
-              Store.routerPush = "approveAll";
-              router.push({
-                name: "SvcSucess",
-              });
-            } else {
-              commonStore.SvcFail.msg = res.desc;
-              router.push({
-                name: "SvcFail",
-              });
-            }
-          })
-          .catch();
-      }
-    },
-  };
-};
 onBeforeMount(async (from) => {
   Store.loadingSpinner = true;
   findSysList();

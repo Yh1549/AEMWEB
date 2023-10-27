@@ -3,6 +3,7 @@
   <router-link
     to="/CaseFlowNew"
     class="w-14/16 md:w-12/16 min-w-[270px] mb-8 mx-auto flex items-center justify-center bg-primaryDark border-4 rounded cursor-pointer transition-all group relative hover:border-secondaryDark"
+    v-if="Store.getSvcAuth('CreateCaseFlowAndDetail')"
   >
     <!--加字記號-->
     <div
@@ -19,17 +20,17 @@
     </div>
   </router-link>
   <div v-for="sys in system">
-    <span class="font-bold"> {{ sys.memo }}： </span>
-    <div v-if="sys.flow.length == 0" class="my-2">
+    <span class="font-bold">
+      {{ sys.memo }}
+      <span class="text-sm ml-1">{{ sys.name }}</span
+      >：
+    </span>
+
+    <div v-if="sys.flow.length == 0" class="my-6">
       <span>無</span>
     </div>
     <div v-else class="flex flex-wrap mx-auto">
-      <case-card
-        v-for="flow in sys.flow"
-        :key="flow"
-        :flow="flow"
-        class="w-1/4 min-w-[280px]"
-      />
+      <case-card v-for="flow in sys.flow" :key="flow" :flow="flow" />
     </div>
   </div>
 </template>

@@ -20,17 +20,45 @@
           </p>
         </div>
         <div class="mx-4" v-if="Store.approveCase.postDetail">
-          <p>系統：{{ Store.getRelSys(props.caseDetail.relSys) }}</p>
-          <p>類別：{{ Store.getTag(props.caseDetail.postTag) ?? "-" }}</p>
+          <p>
+            系統：{{ Store.getRelSys(props.caseDetail.relSys).memo }}/{{
+              Store.getRelSys(props.caseDetail.relSys).name
+            }}
+            <span class="text-sm ml-1">{{ props.caseDetail.relSys }}</span>
+          </p>
+          <div>
+            群組：
+            <span v-if="tagLenght">-</span>
+            <span
+              v-else
+              class="bg-primaryLight/40 rounded px-2 gap-1 mr-1"
+              v-for="tag in props.caseDetail.postTag"
+            >
+              {{ Store.getTag(tag) }}
+              <span class="text-sm">{{ tag }}</span>
+            </span>
+          </div>
           <p>置頂：{{ top(props.caseDetail.top) }}</p>
           <p>發布日期：{{ props.caseDetail.postDate }}</p>
         </div>
         <div class="mx-4" v-if="Store.approveCase.advertiseDetail">
-          <p>系統：{{ Store.getRelSys(props.caseDetail.system) }}</p>
-          <p>區域：{{ getBlockFromOneAd ?? "-" }}</p>
+          <p>
+            系統：{{ Store.getRelSys(props.caseDetail.system).memo }}
+            <span class="text-sm ml-1">{{ props.caseDetail.system }}</span>
+          </p>
+          <div>
+            區域：<span class="bg-primaryLight/40 rounded px-2 gap-2">
+              {{ getBlockFromOneAd ?? "-" }}
+              <span class="text-sm">{{ props.caseDetail.block }}</span></span
+            >
+          </div>
           <p>開始日期：{{ props.caseDetail.adStartDate }}</p>
           <p>結束日期：{{ props.caseDetail.adEndDate }}</p>
-          <p>超連結：{{ props.caseDetail.link ?? "-" }}</p>
+          <p>
+            超連結：{{
+              props.caseDetail.link == "" ? "-" : props.caseDetail.link
+            }}
+          </p>
         </div>
       </div>
       <div
@@ -56,11 +84,12 @@
   </div>
 </template>
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watchEffect } from "vue";
 import { useAdStore, useStore } from "../../store/store";
 const Store = useStore();
 const adStore = useAdStore();
 const props = defineProps(["caseDetail"]);
+const tagLenght = ref(true);
 const top = (t) => {
   if (t) return "置頂";
   else return "不置頂";
@@ -70,6 +99,11 @@ const getBlockFromOneAd = computed(() => {
     if (props.caseDetail.block === adStore.adBlockList[i].block) {
       return adStore.adBlockList[i].memo;
     }
+  }
+});
+watchEffect(() => {
+  if (props.caseDetail.postTag) {
+    tagLenght.value = props.caseDetail.postTag.length == 0;
   }
 });
 </script>

@@ -54,10 +54,10 @@
     </loadSpinner>
     <div v-if="Store.getSvcAuth('UpdateUser')" class="flex justify-center mt-8">
       <button
-        class="btn btnClick bg-cancel/70 mr-8"
+        class="btn btnClick bg-cancel mr-8"
         @click="resetUserActiveSystem"
       >
-        重置
+        取消變更
       </button>
       <button
         class="btn btnClick bg-primaryDark ml-8"
@@ -112,9 +112,18 @@ const updateUserActiveSystem = async () => {
 const resetUserActiveSystem = async () => {
   Store.alertShow = true;
   Store.alertObj = {
-    msg: `確定重置「${userStore.userEdit.name}」的可用嗎？您所做的變更不會被儲存`,
+    msg: `確定取消變更「${userStore.userEdit.name}」的可用系統嗎？`,
     func: async (e) => {
-      // userActiveSystem.value = userStore.userEdit;
+      let res = await apiRequest.post("FindEmpIdSystem", {
+        empId: route.params.userId,
+      });
+      if (res.desc == "successful") {
+        if (res.resBody.system == null) {
+          userActiveSystem.value = [];
+        } else {
+          userActiveSystem.value = res.resBody.system;
+        }
+      }
     },
   };
 };

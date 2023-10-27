@@ -22,7 +22,7 @@
 import { computed, markRaw, onBeforeMount, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import apiRequest from "../api/apiRequest";
-import { FindOnePost, findPostTag, findSysList } from "../api/service";
+import { FindOnePost, findSysList } from "../api/service";
 import adUpdate from "../components/ad/adUpdate.vue";
 import caseTable from "../components/caseTable.vue";
 import detailContent from "../components/detail/detailContent.vue";
@@ -38,7 +38,6 @@ const route = useRoute();
 const router = useRouter();
 const hasCaseFlow = ref(false);
 const detailInfo = ref({});
-const adBlockList = ref();
 //
 const getUpdatePage = computed(() => {
   if (route.params.category == "post") {
@@ -57,14 +56,14 @@ const checkUserCaseFlow = async () => {
   }
 };
 
-const findSystemBlock = async () => {
-  let res = await apiRequest.post("FindSystemBlock", {
-    system: detailInfo.value.system,
-  });
-  if (res.desc == "successful") {
-    adBlockList.value = res.resBody.blockModelList;
-  }
-};
+// const findSystemBlock = async () => {
+//   let res = await apiRequest.post("FindSystemBlock", {
+//     system: detailInfo.value.system,
+//   });
+//   if (res.desc == "successful") {
+//     adBlockList.value = res.resBody.blockModelList;
+//   }
+// };
 
 onBeforeMount(async () => {
   useStore().detailUpdateToggle = false;
@@ -72,9 +71,13 @@ onBeforeMount(async () => {
     const res = await FindOnePost(route.params.uuid);
     if (res.desc == "successful") {
       detailInfo.value = res.resBody;
-      await findPostTag(detailInfo.value.relSys);
+      let resTag = await apiRequest.post("FindPostTag", {
+        system: detailInfo.value.relSys,
+      });
+      if (resTag.desc == "successful") {
+        detailInfo.value.tagList = resTag.resBody.tagModelList;
+      }
       checkUserCaseFlow();
-      findSystemBlock();
     } else {
       Store.alertShow = true;
       Store.alertObj = {

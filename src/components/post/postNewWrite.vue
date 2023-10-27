@@ -3,7 +3,8 @@
     <!-- row-->
     <formRow>
       <formRowItem>
-        <span class="inline-block ml-2">是否置頂 : </span>
+        <span class="text-cancel font-bold">*</span>
+        <span class="inline-block">是否置頂 : </span>
         <div class="w-full flex gap-4">
           <label class="inpLabel cursor-pointer">
             <input type="radio" value="1" v-model="props.newPost.top" />
@@ -16,25 +17,30 @@
         </div>
       </formRowItem>
       <formRowItem :width="'w-96'">
-        <span class="block ml-2">上架日期與時間 : </span>
-        <label class="inpLabel w-1/2">
-          <input
-            type="date"
-            class="inp w-full"
-            :min="Store.getToday()"
-            v-verify:[postDateValidArg]="newPostChecking.postDate"
-            v-model="postDate"
-          />
-        </label>
-        <label class="inpLabel w-1/2">
-          <input
-            type="time"
-            class="inp w-full"
-            v-verify:[postTimeValidArg]="newPostChecking.postTime"
-            v-model="postTime"
-            @change="buildPostTime"
-          />
-        </label>
+        <div class="block">
+          <span class="text-cancel font-bold">*</span>
+          <span>上架日期與時間 : </span>
+        </div>
+        <div class="flex gap-4">
+          <label class="inpLabel w-1/2">
+            <input
+              type="date"
+              class="inp w-full"
+              :min="Store.getToday()"
+              v-verify:[postDateValidArg]="newPostChecking.postDate"
+              v-model="postDate"
+            />
+          </label>
+          <label class="inpLabel w-1/2">
+            <input
+              type="time"
+              class="inp w-full"
+              v-verify:[postTimeValidArg]="newPostChecking.postTime"
+              v-model="postTime"
+              @change="buildPostTime"
+            />
+          </label>
+        </div>
         <inputErrorMsg v-if="newPostChecking.postDate.pass == false">{{
           newPostChecking.postDate.msg
         }}</inputErrorMsg>
@@ -44,7 +50,10 @@
       <!-- row -->
       <formRowItem>
         <div class="flex justify-between items-center pr-1">
-          <span class="ml-2">發布系統</span>
+          <div>
+            <span class="text-cancel font-bold">*</span>
+            <span>發布系統</span>
+          </div>
           <span class="text-sm opacity-70">您打算發送公告的系統</span>
         </div>
         <label class="inpLabel w-full">
@@ -52,12 +61,7 @@
             class="w-full inp"
             v-verify:[relSysValidArg]="newPostChecking.relSys"
             v-model="props.newPost.relSys"
-            @change="
-              findPostTag(props.newPost.relSys);
-              findFlow();
-              props.newPost.tag = null;
-              props.newPost.flow = null;
-            "
+            @change="selectSystemGetTag"
           >
             <option disabled value="null">請選擇您所發布的系統</option>
             <option
@@ -65,7 +69,7 @@
               :key="item"
               :value="item.name"
             >
-              {{ item.memo }}
+              {{ item.memo }}/{{ item.name }}
             </option>
           </select></label
         >
@@ -73,27 +77,24 @@
           newPostChecking.relSys.msg
         }}</inputErrorMsg>
       </formRowItem>
-      <formRowItem>
-        <div class="flex justify-between items-center pr-1">
-          <span class="ml-2">發布類別 :</span>
-          <span class="text-sm opacity-70">預計發送系統的分類</span>
+      <formRowItem :width="'w-fit'" class="min-h-[96px] h-fit">
+        <p class="ml-2">發布群組 :</p>
+        <div class="w-full flex gap-3 flex-wrap">
+          <span v-if="checkTag()" class="opacity-70">{{ noTag }}</span>
+          <div v-else class="flex gap-4">
+            <label v-for="item in tagList" class="inpLabel cursor-pointer">
+              <input type="checkbox" v-model="postTag" :value="item.name" />
+              {{ item.memo }}/{{ item.name }}
+            </label>
+          </div>
         </div>
-        <label class="inpLabel w-full">
-          <select class="w-full inp" v-model="props.newPost.tag">
-            <option disabled value="null">請選擇公告類別</option>
-            <option
-              v-for="item in Store.postOption.Tag"
-              :key="item.name"
-              :value="item.name"
-            >
-              {{ item.memo }}
-            </option>
-          </select>
-        </label>
       </formRowItem>
+    </formRow>
+    <formRow>
       <formRowItem>
-        <span class="ml-2">選擇建檔流程 :</span
-        ><label class="inpLabel w-full">
+        <span class="text-cancel font-bold">*</span>
+        <span>選擇建檔流程 :</span>
+        <label class="inpLabel w-full">
           <select
             class="w-full inp"
             v-verify:[flowValidArg]="newPostChecking.flow"
@@ -137,7 +138,10 @@
     </formRow>
     <div class="my-4">
       <div class="flex justify-between items-center pr-1">
-        <span class="ml-2">標題</span>
+        <div>
+          <span class="text-cancel font-bold">*</span>
+          <span>標題</span>
+        </div>
         <span class="text-sm opacity-70">您打算發送公告的標題</span>
       </div>
       <label for="title" class="inpLabel w-full mb-4">
@@ -153,7 +157,10 @@
         newPostChecking.title.msg
       }}</inputErrorMsg>
       <div class="flex justify-between items-center pr-1">
-        <span class="ml-2">內文</span>
+        <div>
+          <span class="text-cancel font-bold">*</span>
+          <span>內文</span>
+        </div>
         <span class="text-sm opacity-70">您打算發送公告的內文</span>
       </div>
       <tiptap
@@ -173,23 +180,23 @@
 import { computed, onBeforeMount, ref } from "vue";
 import { useRoute } from "vue-router";
 import apiRequest from "../../api/apiRequest";
-import { FindEmpCaseFlowForCaseCreate, findPostTag } from "../../api/service";
+import { FindEmpCaseFlowForCaseCreate } from "../../api/service";
 import { InputValidationContent } from "../../formValidation/validTunnel";
-import { usePostStore, useStore } from "../../store/store";
+import { useStore } from "../../store/store";
 import Tiptap from "../Tiptap/Tiptap.vue";
 import formRow from "../formRow.vue";
 import formRowItem from "../formRowItem.vue";
 import inputErrorMsg from "../inputErrorMsg.vue";
 const Store = useStore();
-const postStore = usePostStore();
 
 const route = useRoute();
-const emit = defineEmits(["newPostConfirm"]);
+const emit = defineEmits(["toConfirm"]);
 const props = defineProps(["newPost"]);
+const fullInfo = ref({});
 const postDate = ref("");
 const postTime = ref("");
 const sysList = ref("");
-//
+const tagList = ref("");
 const postDateValidArg = ["notNull", "todayAfter"];
 const postTimeValidArg = ["notNull"];
 const relSysValidArg = ["notNull"];
@@ -204,14 +211,26 @@ const newPostChecking = ref({
   content: { pass: null, msg: null },
   relSys: { pass: null, msg: null },
 });
-//
+const noTag = ref("");
 const flowList = ref([]);
 const flowDetailInfo = ref({});
+const postTag = ref([]);
 const findFlow = async () => {
   const res = await FindEmpCaseFlowForCaseCreate("POST", props.newPost.relSys);
   if (res.desc == "successful") {
     flowList.value = res.resBody.flowList;
   }
+};
+const selectSystemGetTag = async () => {
+  let res = await apiRequest.post("FindPostTag", {
+    system: props.newPost.relSys,
+  });
+  if (res.desc == "successful") {
+    tagList.value = res.resBody.tagModelList;
+  }
+  findFlow();
+  postTag.value = [];
+  props.newPost.flow = null;
 };
 const flowDetail = async () => {
   const res = await apiRequest.post("FindCaseFlowAndDetail", {
@@ -224,7 +243,19 @@ const flowDetail = async () => {
 const buildPostTime = () => {
   props.newPost.postDate = postDate.value + " " + postTime.value + ":00";
 };
+const checkTag = () => {
+  if (props.newPost.relSys == null) {
+    noTag.value = "請先選擇發布的系統";
+    return true;
+  } else if (tagList.value.length == 0) {
+    noTag.value = "目前尚無群組";
+    return true;
+  } else {
+    return false;
+  }
+};
 const nextStep = () => {
+  props.newPost.tag = postTag.value;
   for (let item in newPostChecking.value) {
     if (!newPostChecking.value[item].pass) {
       Store.alertShow = true;
@@ -235,9 +266,8 @@ const nextStep = () => {
       return;
     }
   }
-  emit("newPostConfirm", props.newPost);
-  postStore.newPostStep = false;
-  Store.currentNewStep = "postnewConfirm";
+  fullInfo.value.tag = tagList.value;
+  emit("toConfirm", props.newPost, "confirm", fullInfo.value);
 };
 const getSystemMemo = computed(() => {
   let array = [];

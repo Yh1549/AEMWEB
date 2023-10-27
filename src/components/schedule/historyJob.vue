@@ -12,7 +12,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr class="bg-primaryDark/20" v-if="Store().scheduleHistory == ''">
+          <tr class="bg-primaryDark/20" v-if="Store.scheduleHistory == ''">
             <td colspan="3">
               <span class="">--- 目前尚無資料 ---</span>
             </td>

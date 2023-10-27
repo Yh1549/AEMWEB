@@ -10,10 +10,7 @@
     <template #td
       ><tr v-for="post in Store.pageData.pager" :key="post.uuid">
         <td class="text-sm">
-          {{
-            Store.dateReform(Store.timeReform(post.postDate)[0], ".", "/") ??
-            "未發布"
-          }}
+          {{ post.postDate?.substring(0, 16) ?? "未發布" }}
         </td>
         <td>
           <span
@@ -23,11 +20,12 @@
             {{ commonStore.getCaseStatusName(post.status)?.title }}
           </span>
         </td>
-        <td class="font-bold w-11/16">
+        <td class="font-bold w-1/2">
           {{ postTitle(post.title, 50) }}
         </td>
         <td>
-          {{ Store.getRelSys(post.relSys) }}
+          {{ Store.getRelSys(post.relSys).memo }}/
+          {{ Store.getRelSys(post.relSys).name }}
         </td>
         <td>
           <button

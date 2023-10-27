@@ -2,17 +2,13 @@
   <div class="w-full flex justify-evenly bg-primary rounded-t py-4">
     <newStepHeader
       v-for="(item, index) in newTitle.list"
-      :stepValue="[item.name, index]"
+      :stepValue="[item, index]"
+      :currentStep="currentStep"
     >
-      <template #title> {{ item.title }} </template>
     </newStepHeader>
   </div>
   <keep-alive>
-    <component
-      :is="getNewTitle"
-      :newUser="newUser"
-      @newUserConfirm="newUserConfirm"
-    ></component
+    <component :is="getNewTitle" :newUser="newUser" @toNext="toNext"></component
   ></keep-alive>
 </template>
 <script setup>
@@ -30,6 +26,7 @@ import userNewRange from "../../../../components/user/userNewRange.vue";
 import { useStore, useUserStore } from "../../../../store/store";
 const Store = useStore();
 const userStore = useUserStore();
+const currentStep = ref("basic");
 const newTitle = shallowRef([]);
 const rangeValid = ref(false);
 const newUser = ref({
@@ -44,13 +41,16 @@ const newUser = ref({
   range: [],
   sets: [],
 });
-const newUserConfirm = (value) => {
+const toNext = (value, step) => {
   newUser.value = value;
+  console.log(step);
+  currentStep.value = step;
 };
 const getNewTitle = computed(() => {
   for (let item in newTitle.value.list) {
-    if (Store.currentNewStep == newTitle.value.list[item].name) {
+    if (currentStep.value == newTitle.value.list[item].name) {
       newTitle.value.com = newTitle.value.list[item].com;
+      break;
     }
   }
   return newTitle.value.com;
@@ -71,18 +71,18 @@ onBeforeMount(async () => {
         com: usernewBasic,
         list: [
           {
-            name: "usernewBasic",
+            name: "basic",
             title: "基本資料",
             com: markRaw(usernewBasic),
           },
-          { name: "usernewAuth", title: "權限設定", com: markRaw(usernewAuth) },
+          { name: "auth", title: "權限設定", com: markRaw(usernewAuth) },
           {
-            name: "userNewRange",
+            name: "range",
             title: "管理範圍",
             com: markRaw(userNewRange),
           },
           {
-            name: "usernewConfirm",
+            name: "confirm",
             title: "資料確認",
             com: markRaw(usernewConfirm),
           },
@@ -93,20 +93,19 @@ onBeforeMount(async () => {
         com: usernewBasic,
         list: [
           {
-            name: "usernewBasic",
+            name: "basic",
             title: "基本資料",
             com: markRaw(usernewBasic),
           },
-          { name: "usernewAuth", title: "權限設定", com: markRaw(usernewAuth) },
+          { name: "auth", title: "權限設定", com: markRaw(usernewAuth) },
           {
-            name: "usernewConfirm",
+            name: "confirm",
             title: "資料確認",
             com: markRaw(usernewConfirm),
           },
         ],
       };
     }
-    Store.currentNewStep = newTitle.value.list[0].name;
   }
 });
 </script>

@@ -181,7 +181,9 @@
   .toggleSwicth:active:after {
     width: 32.5px;
   }
-
+  .tiptapStyle .ProseMirror {
+    @apply min-h-[200px] rounded-b p-2 outline-none border-4 border-primaryDark;
+  }
   .tiptapStyle a {
     color: blue;
     text-decoration: underline;
@@ -211,5 +213,39 @@
     border-color: grey;
     padding: 0.25rem;
     margin: 0.25rem;
+  }
+  .tiptapStyle table {
+    @apply overflow-hidden;
+  }
+  .tiptapStyle table th,
+  .tiptapStyle table td {
+    @apply min-w-[3em] relative;
+  }
+  .tiptapStyle table th > *,
+  .tiptapStyle table td > * {
+    @apply bottom-0;
+  }
+  .tiptapStyle table .selectedCell:after {
+    @apply absolute z-10 left-0 right-0 top-0 bottom-0 bg-secondaryLight/50;
+    content: "";
+    pointer-events: none;
+  }
+  .tiptapStyle table .column-resize-handle {
+    @apply absolute -right-0.5 top-0 h-screen w-1 bg-primaryLight/50 z-50 pointer-events-none;
+  }
+  .tiptapStyle table p {
+    margin: 0;
+  }
+  .tiptapStyle .tableWrapper {
+    @apply scrollbar overflow-x-auto py-2;
+  }
+  .tiptapStyle .resize-cursor {
+    @apply cursor-col-resize;
+  }
+  .tiptapStyle table th {
+    text-align: left;
+  }
+  .tiptapStyle strong span {
+    @apply font-bold;
   }
 }

@@ -110,7 +110,7 @@ export const useCommonStore = defineStore({
         caseflow: {
           id: "caseflow",
           path: "/caseflow",
-          title: "審核流程",
+          title: "審核流程管理",
           desc: "",
           auth: "pass",
         },
@@ -126,7 +126,7 @@ export const useCommonStore = defineStore({
           path: "/optionsManage",
           title: "系統選項設定",
           desc: "",
-          auth: "UpdateSysList",
+          auth: "CreatePostTag",
         },
         errorCodeManage: {
           id: "errorCodeManage",
@@ -147,7 +147,7 @@ export const useCommonStore = defineStore({
           path: "/msgInfoManage",
           title: "訊息管理",
           desc: "",
-          auth: "pass",
+          auth: "FindAllMsgInfo",
         },
       },
     },

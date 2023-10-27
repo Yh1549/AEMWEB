@@ -107,7 +107,7 @@
             <select name="user" class="inp w-full" v-model="system">
               <option :value="undefined">-- 請選擇 --</option>
               <option v-for="i in data.system" :value="i" :key="i">
-                {{ i.memo }}
+                {{ i.memo }} / {{ i.name }}
               </option>
             </select>
           </label>

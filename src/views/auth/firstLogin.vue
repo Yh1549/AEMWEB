@@ -137,7 +137,7 @@ const firstLoginOtp = async () => {
   Store.firstOtpShow = true;
   Store.loadingSpinner = true;
   firstLoginBtnText.value = "驗證碼發送中...";
-  await apiRequest
+  apiRequest
     .post("CheckEmailValid", {
       empid: adNum.value,
       mima: mima.value,
@@ -164,7 +164,7 @@ const normalLogin = async () => {
   clearInterval(otpTimeInterval);
   Store.loadingSpinner = true;
   firstLoginBtnText.value = "登入中...";
-  await apiRequest
+  apiRequest
     .post("/UserLogin", {
       empid: adNum.value,
       mima: mima.value,

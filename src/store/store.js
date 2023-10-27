@@ -64,10 +64,8 @@ export const useStore = defineStore({
     jobList: [],
     //訊息維護
     msgInfoList: [],
-    // 仔入中
     loadingSpinner: false,
-    validationResultObj: {},
-    currentNewStep: "",
+    // validationResultObj: {},
     scheduleCheckList: {
       jobName: null,
       triggerName: null,
@@ -76,12 +74,6 @@ export const useStore = defineStore({
       triggerFlag: null,
     },
     scheduleCheckTime: { tiggerTime: null },
-    // caseFlowCheck: {
-    //   relSys: null,
-    //   type: null,
-    //   totalLevel: null,
-    //   memo: null,
-    // },
     reSendButton: false,
     firstOtpShow: false,
     resetLogin: false,
@@ -205,9 +197,13 @@ export const useStore = defineStore({
     getRelSys(str) {
       for (let i = 0; i < useStore().postOption.System.length; i++) {
         if (str === useStore().postOption.System[i].name) {
-          return useStore().postOption.System[i].memo;
+          return useStore().postOption.System[i];
         }
       }
+      return {
+        name: "",
+        memo: "",
+      };
     },
     getTag(str) {
       for (let i = 0; i < useStore().postOption.Tag.length; i++) {
@@ -295,38 +291,26 @@ export const usePostStore = defineStore({
       },
       { status: "end", memo: "已結案" },
     ],
-    newPostStep: true,
     historyCase: false,
   }),
-  actions: {
-    // getCaseflow(Post, list) {
-    //   if (Post != null) {
-    //     for (let i = 0; i < list.length; i++) {
-    //       if (Post === list[i].flow) {
-    //         return list[i];
-    //       }
-    //     }
-    //   } else {
-    //     return false
-    //   }
-    // },
-    getRelSys(Post, str) {
-      for (let i = 0; i < useStore().postOption.System.length; i++) {
-        if (Post.relSys === useStore().postOption.System[i].name) {
-          return useStore().postOption.System[i][str];
-        }
-      }
-    },
-    getTag(Post, str) {
-      if (Post.tag != null) {
-        for (let i = 0; i < useStore().postOption.Tag.length; i++) {
-          if (Post.tag === useStore().postOption.Tag[i].name) {
-            return useStore().postOption.Tag[i][str];
-          }
-        }
-      }
-    },
-  },
+  // actions: {
+  //   getRelSys(Post, str) {
+  //     for (let i = 0; i < useStore().postOption.System.length; i++) {
+  //       if (Post.relSys === useStore().postOption.System[i].name) {
+  //         return useStore().postOption.System[i][str];
+  //       }
+  //     }
+  //   },
+  //   getTag(Post, str) {
+  //     if (Post != null) {
+  //       for (let i = 0; i < useStore().postOption.Tag.length; i++) {
+  //         if (Post === useStore().postOption.Tag[i].name) {
+  //           return useStore().postOption.Tag[i][str];
+  //         }
+  //       }
+  //     }
+  //   },
+  // },
 });
 // 廣告
 export const useAdStore = defineStore({
@@ -335,47 +319,10 @@ export const useAdStore = defineStore({
     List: [],
     selected: null,
     adBlockList: [],
-    newAdStep: true,
+    selectedSys: null,
+    selectedBlock: null,
     updateAdShow: false,
   }),
-  actions: {
-    getBlockMemo(str) {
-      for (let i = 0; i < this.adBlockList.length; i++) {
-        if (str === this.adBlockList[i].block) {
-          return this.adBlockList[i].memo;
-        }
-      }
-    },
-    getCaseflow(str) {
-      if (this.newAd.flow != null) {
-        for (let i = 0; i < useFlowStore().caseDetail.length; i++) {
-          if (this.newAd.flow === useFlowStore().caseDetail[i].flow) {
-            return useFlowStore().Detail[i][str];
-          }
-        }
-      } else {
-        return false;
-      }
-    },
-    getRelSys(str) {
-      if (this.newAd.relSys != null) {
-        for (let i = 0; i < useStore().postOption.System.length; i++) {
-          if (this.newAd.relSys === useStore().postOption.System[i].name) {
-            return useStore().postOption.System[i][str];
-          }
-        }
-      } else return false;
-    },
-    getTag(str) {
-      if (this.newAd.tag != null) {
-        for (let i = 0; i < useStore().postOption.Tag.length; i++) {
-          if (this.newAd.tag === useStore().postOption.Tag[i].name) {
-            return useStore().postOption.Tag[i][str];
-          }
-        }
-      }
-    },
-  },
 });
 // 使用者
 export const useUserStore = defineStore({

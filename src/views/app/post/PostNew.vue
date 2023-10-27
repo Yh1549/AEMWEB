@@ -2,59 +2,61 @@
   <div class="w-full flex justify-evenly bg-primary rounded-t py-4">
     <newStepHeader
       v-for="(item, index) in newTitle"
-      :stepValue="[item.name, index]"
+      :stepValue="[item, index]"
+      :currentStep="currentStep"
     >
-      <template #title> {{ item.title }} </template>
     </newStepHeader>
   </div>
   <keep-alive>
     <postnewWrite
-      v-if="postStore.newPostStep"
+      v-if="currentStep == 'write'"
       :newPost="newPost"
-      @newPostConfirm="newPostConfirmCallBack"
+      @toConfirm="toConfirm"
     ></postnewWrite>
-    <postnewConfirm v-else :newPost="newPost"></postnewConfirm>
+    <postnewConfirm
+      v-else
+      :newPost="newPost"
+      :fullInfo="fullInfo"
+      @toWrite="toWrite"
+    ></postnewConfirm>
   </keep-alive>
-  <loadSpinner>
-    <template #title>儲存中</template>
-  </loadSpinner>
 </template>
 
 <script setup>
 import { ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
 import newStepHeader from "../../../components/newStepHeader.vue";
 import postnewConfirm from "../../../components/post/postNewConfirm.vue";
 import postnewWrite from "../../../components/post/postNewWrite.vue";
 import { usePostStore } from "../../../store/store";
 const postStore = usePostStore();
-const route = useRoute();
-const router = useRouter();
+const currentStep = ref("write");
 const newPost = ref({
   title: null,
   content: null,
-  top: "1",
+  top: "0",
   postDate: null,
   relSys: null,
-  tag: null,
+  tag: [],
   // Unit: null,
   flow: null,
 });
-const newPostConfirmCallBack = (value) => {
+const fullInfo = ref({});
+const toConfirm = (value, step, info) => {
   newPost.value = value;
+  currentStep.value = step;
+  fullInfo.value = info;
+};
+const toWrite = (step) => {
+  currentStep.value = step;
 };
 const newTitle = [
   {
-    name: "postnewWrite",
+    name: "write",
     title: "填寫資料",
   },
   {
-    name: "postnewConfirm",
+    name: "confirm",
     title: "確認後送出",
   },
 ];
-
-// onBeforeMount(async () => {
-//   Store.currentNewStep = "postnewWrite";
-// });
 </script>

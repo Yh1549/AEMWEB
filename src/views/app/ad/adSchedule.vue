@@ -1,7 +1,7 @@
 <template>
-  <div class="md:flex w-full justify-center">
+  <!-- <div class="md:flex w-full justify-center">
     <div class="w-full md:w-4/16 p-2">
-      <systemSelect :options="Store.postOption.System">
+      <systemSelect :options="systemList">
         <template #title>請先選擇一個系統</template>
       </systemSelect>
     </div>
@@ -9,6 +9,39 @@
       <sysBlockSelec :options="adStore.adBlockList" :blockAdSvc="'blockSortAd'">
         <template #title>再選擇一個區塊</template>
       </sysBlockSelec>
+    </div>
+  </div> -->
+  <div class="w-1/2 mx-auto py-4">
+    <span class="font-bold"> 系統 / 區塊 :</span>
+    <div class="flex w-full gap-4">
+      <!-- 系統 -->
+      <label class="inpLabel w-full">
+        <select class="inp w-full" v-model="selectedSys" @change="getSelected">
+          <option disabled :value="''">請選擇</option>
+          <option v-for="item in systemList" :key="item" :value="item.name">
+            {{ item.memo }} / {{ item.name }}
+          </option>
+        </select>
+      </label>
+      <label class="inpLabel w-full">
+        <select
+          class="inp w-full"
+          v-model="selectedBlock"
+          @change="getSelectBlockAd"
+        >
+          <option disabled :value="''">{{ getPlaceholder }}</option>
+          <option
+            v-for="item in blockList"
+            :key="item.block"
+            :value="item.block"
+          >
+            {{ item.memo }} / {{ item.block }}
+          </option>
+        </select>
+      </label>
+    </div>
+    <div class="text-end my-2">
+      <button class="btn" @click="reset">清空搜尋</button>
     </div>
   </div>
   <div class="mx-auto w-full flex justify-center items-center">
@@ -22,7 +55,7 @@
     <span class="font-bold">{{ toggleUpdate ? "排序開啟" : "排序關閉" }}</span>
   </div>
   <span class="opacity-70 block text-center text-sm"
-    >*拖曳廣告以調整順序，最上層為最優先顯示，目前拖曳尚未支持手機版</span
+    >*拖曳廣告以調整順序，最上層為最優先顯示</span
   >
 
   <div
@@ -194,10 +227,7 @@ import {
 } from "vue";
 import { useRouter } from "vue-router";
 import apiRequest from "../../../api/apiRequest";
-import { findSysList } from "../../../api/service";
 import loadSpinner from "../../../components/loadSpinner.vue";
-import sysBlockSelec from "../../../components/sysBlockSelec.vue";
-import systemSelect from "../../../components/systemSelect.vue";
 import { useAdStore, useStore } from "../../../store/store";
 const Store = useStore();
 const adStore = useAdStore();
@@ -208,6 +238,12 @@ const AdList = ref([]);
 const container = ref(null);
 const toggleUpdate = ref(false);
 const router = useRouter();
+const systemList = ref([]);
+const blockList = ref([]);
+const systemFullList = ref(JSON.parse(sessionStorage.getItem("SysList")));
+const selectedSys = ref("");
+const selectedBlock = ref("");
+
 let currentDrag;
 let currentZone;
 // 資料重新排列
@@ -386,9 +422,59 @@ watchEffect(() => {
   }
 });
 onBeforeMount(async () => {
-  await findSysList();
+  adStore.List = [];
+  await apiRequest.post("FindUserSystem", {}).then((res) => {
+    for (let item of systemFullList.value) {
+      for (let value of res.resBody.system) {
+        if (item.name == value) {
+          systemList.value.push(item);
+        }
+      }
+    }
+  });
 });
 onBeforeUnmount(() => {
   adStore.List = [];
 });
+const getSelected = () => {
+  apiRequest
+    .post("FindSystemBlock", { system: selectedSys.value })
+    .then((res) => {
+      if (res.desc == "successful") {
+        blockList.value = res.resBody.blockModelList;
+      }
+    })
+    .catch();
+};
+const getPlaceholder = computed(() => {
+  // console.log(blockList.length);
+  if (blockList.value.length == 0) {
+    return "無區塊";
+  }
+  return "請選擇";
+});
+const getSelectBlockAd = () => {
+  Store.loadingSpinner = true;
+  apiRequest
+    .get(`blockSortAd`, {
+      params: {
+        system: selectedSys.value,
+        block: selectedBlock.value,
+      },
+    })
+    .then((res) => {
+      Store.loadingSpinner = false;
+      if (res.desc == "successful") {
+        adStore.List = res.resBody.advertiseModelList;
+      }
+    })
+    .catch((e) => {
+      Store.loadingSpinner = false;
+    });
+};
+const reset = () => {
+  selectedSys.value = "";
+  selectedBlock.value = "";
+  adStore.List = [];
+};
 </script>

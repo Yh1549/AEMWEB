@@ -59,10 +59,7 @@
     </div>
   </div>
   <div class="flex justify-evenly">
-    <button
-      class="btn btnClick bg-primaryDark my-8"
-      @click="Store.currentNewStep = 'usernewAuth'"
-    >
+    <button class="btn btnClick bg-primaryDark my-8" @click="prevStep">
       上一步
     </button>
     <button class="btn btnClick bg-primaryDark my-8" @click="nextStep">
@@ -77,7 +74,7 @@ const Store = useStore();
 const userStore = useUserStore();
 
 const props = defineProps(["newUser"]);
-const emit = defineEmits(["newUserConfirm"]);
+const emit = defineEmits(["toNext"]);
 
 const toggleUpdate = ref(false);
 const rangeToggle = () => {
@@ -93,7 +90,9 @@ const rangeToggle = () => {
   }
 };
 const nextStep = () => {
-  Store.currentNewStep = "usernewConfirm";
-  emit("newUserConfirm", props.newUser);
+  emit("toNext", props.newUser, "confirm");
+};
+const prevStep = () => {
+  emit("toNext", props.newUser, "auth");
 };
 </script>
